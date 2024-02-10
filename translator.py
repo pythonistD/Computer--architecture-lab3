@@ -92,7 +92,7 @@ class Translator:
     def parse_labels(self, lines: list) -> None:
         # Count position of instruction to which label points
         counter = 0
-        pos_in_data_mem = 4
+        pos_in_data_mem = 3
         for i in range(len(lines)):
             pos = lines[i].find(':')
             if pos == -1:
