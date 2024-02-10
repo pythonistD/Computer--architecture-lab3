@@ -1,7 +1,7 @@
 from collections import namedtuple
 from enum import Enum
+import json
 
-Term = namedtuple('Term', 'line pos')
 
 class Opcode(Enum):
     load = 1
@@ -20,4 +20,11 @@ class Opcode(Enum):
     hlt = 14
 
 
+class DataType(Enum):
+    num = 1
+    string = 2,
+    char = 3
 
+def write_code(code: list, filename: str) -> None:
+    with open(filename, 'w') as f:
+        f.write(json.dumps(code, indent=4))
