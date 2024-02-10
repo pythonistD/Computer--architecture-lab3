@@ -1,5 +1,4 @@
 from typing import Optional
-import re
 
 from isa import Opcode, DataType, write_code
 
@@ -19,7 +18,8 @@ def symbol2opcode(symbol):
     'iret' : Opcode.iret,
     'ei' : Opcode.ei,
     'di' : Opcode.di,
-    'hlt' : Opcode.hlt
+    'hlt' : Opcode.hlt,
+    'jnz' : Opcode.jnz
     }.get(symbol)
 
 def symbol2datatype(symbol):
@@ -90,40 +90,46 @@ class Translator:
         return updated_lines
     
     def parse_labels(self, lines: list) -> None:
-        # Area for variables starts from 4 at Data memory
-        counter = 4
+        # Count position of instruction to which label points
+        counter = 0
+        pos_in_data_mem = 4
         for i in range(len(lines)):
             pos = lines[i].find(':')
             if pos == -1:
+                counter += 1
                 continue
             line = lines[i].split(' ')
             name = line[0][:pos]
+            # Points to the instruction
             if len(line) == 1:
-                var_type = None
-                val = None
+                pointer = counter
+            # Points to the memory cell
             elif len(line) == 3:
                 datatype = symbol2datatype(line[1])
                 if datatype is None:
                     raise ValueError(f'There is no such data type.\n line:{i} {line[i]}')
                 var_type = datatype
                 val = int(line[2])
-            self.label_pos[name] = counter
-            self.labels.append({
-                'name' : f'{name}',
-                'type' : f'{var_type}',
-                'val' : f'{val}',
-                'line': counter
-            })
-            counter += 1
+                pointer = pos_in_data_mem
+                self.labels.append({
+                    'name' : f'{name}',
+                    'type' : f'{var_type}',
+                    'val' : f'{val}',
+                    'pos_in_data_mem': f'{pos_in_data_mem}'
+                })
+            self.label_pos[name] = pointer
+            pos_in_data_mem += 1
 
     def parse_instructions(self, lines: list):
-        # Area for program instructions starts from 0 at Instruction memory
         counter = 0
         for i in range(len(lines)):
             line = lines[i].split(' ')
+            pos = lines[i].find(':')
+            if pos != -1:
+                continue
             opcode = symbol2opcode(line[0])
             if opcode is None:
-                continue
+                raise ValueError(f'There is no such instruction: {line[0]}')
             # instructions with no operand
             if len(line) == 1:
                 arg = None
@@ -131,11 +137,11 @@ class Translator:
                 if line[1].isnumeric():
                     arg = int(line[1])
                 else:
-                    # Replace label with position in data memory
+                    # Replace label with position in data memory or instruction memory
                     arg = self.label_pos[line[1]]
             self.instructions.append({
                 'opcode' : f'{opcode}',
                 'arg' : f'{arg}',
-                'line': counter
+                'pos_in_instr_mem': f'{counter}'
             })
             counter += 1

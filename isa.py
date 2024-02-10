@@ -18,6 +18,7 @@ class Opcode(Enum):
     ei = 12
     di = 13
     hlt = 14
+    jnz = 15
 
 
 class DataType(Enum):
