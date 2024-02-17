@@ -19,7 +19,8 @@ class Opcode(str, Enum):
     di = 'di'
     hlt = 'hlt'
     jnz = 'jnz'
-    interrupt = 'interrupt'
+    interrupt = 'interrupt',
+    indirect = 'indirect'
 
 
 class DataType(Enum):

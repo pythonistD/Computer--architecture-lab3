@@ -158,6 +158,8 @@ class DataPath:
             self.ar = self.in_dev.interrupt_vector_address
         elif sel in address_instructions:
             self.ar = int(self.ir['arg'])
+        elif sel is Opcode.indirect:
+            self.ar = int(self.dr)
         elif sel in stack_instructions:
             self.ar = self.sp
 
@@ -224,10 +226,11 @@ class ControUnit:
         self.datapath.read_from_mem(MemType.instruction_mem)
         cur_inst = self.datapath.ir['opcode']
         arg = self.datapath.ir['arg']
+        ad_type = self.datapath.ir['address_type']
         self.tick()
         # Decode and execution stage
         if cur_inst in instructions:
-            self.execute_basic_instructions(cur_inst)
+            self.execute_basic_instructions(cur_inst, ad_type)
             self.datapath.latch_pc(cur_inst)
         elif cur_inst in control_flow:
             self.execute_control_flow_instruction(cur_inst, arg)
@@ -288,9 +291,13 @@ class ControUnit:
             self.datapath.latch_pc(instr)
             self.tick()
 
-    def execute_basic_instructions(self, instr):
-        self.datapath.latch_ar(instr)
-        self.tick()
+    def execute_basic_instructions(self, instr, ad_type):
+        # ad_type == True => indirect address
+        if ad_type == True:
+            self.load_indirect_address(instr)
+        else:
+            self.datapath.latch_ar(instr)
+            self.tick()
 
         if instr is Opcode.load:
             self.datapath.read_from_mem(MemType.data_mem)
@@ -320,6 +327,14 @@ class ControUnit:
             self.tick()
         elif instr is Opcode.hlt:
             raise SystemExit
+    
+    def load_indirect_address(self, instr):
+        """Загрузить в AR косвенный адрес, после завершиния функции в AR лежит нужный адрес"""
+        self.datapath.latch_ar(instr)
+        self.tick()
+        self.datapath.read_from_mem(MemType.data_mem)
+        self.datapath.latch_ar(Opcode.indirect)
+        self.tick()
 
     def check_for_interrupt(self):
         # One tick to check for interrupt request

@@ -93,7 +93,7 @@ class Translator:
     def parse_labels(self, lines: list) -> None:
         # Count position of instruction to which label points
         counter = 0
-        pos_in_data_mem = 4
+        pos_in_data_mem = 0
         for i in range(len(lines)):
             pos = lines[i].find(':')
             if pos == -1:
@@ -115,9 +115,6 @@ class Translator:
                 quotes = val.find('\'')
                 if quotes != -1:
                     val = val.replace('\'', '')
-                back_slash = val.find('\\')
-                if back_slash != -1:
-                    val = val[back_slash+1:]
                 pointer = pos_in_data_mem
                 self.labels.append({
                     'name' : f'{name}',
@@ -125,8 +122,8 @@ class Translator:
                     'val' : val,
                     'pos_in_data_mem': f'{pos_in_data_mem}'
                 })
+                pos_in_data_mem += 1
             self.label_pos[name] = pointer
-            pos_in_data_mem += 1
 
     def parse_instructions(self, lines: list):
         counter = 0
@@ -136,6 +133,8 @@ class Translator:
             if pos != -1:
                 continue
             opcode = symbol2opcode(line[0]).name
+            # If address_type == False => direct addressing
+            address_type = False
             if opcode is None:
                 raise ValueError(f'There is no such instruction: {line[0]}')
             # instructions with no operand
@@ -146,10 +145,17 @@ class Translator:
                     arg = int(line[1])
                 else:
                     # Replace label with position in data memory or instruction memory
+                    sq_brackets = line[1].find('[')
+                    if sq_brackets != -1:
+                        line[1] = line[1].replace('[', '')
+                        line[1] = line[1].replace(']', '')
+                        # Indirect addressing
+                        address_type = True
                     arg = self.label_pos[line[1]]
             self.instructions.append({
                 'opcode' : f'{opcode}',
                 'arg' : f'{arg}',
+                'address_type': address_type,
                 'pos_in_instr_mem': f'{counter}'
             })
             counter += 1
