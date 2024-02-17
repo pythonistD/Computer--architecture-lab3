@@ -1,4 +1,5 @@
 from typing import Optional
+import argparse
 
 from isa import Opcode, DataType, write_code
 
@@ -92,7 +93,7 @@ class Translator:
     def parse_labels(self, lines: list) -> None:
         # Count position of instruction to which label points
         counter = 0
-        pos_in_data_mem = 3
+        pos_in_data_mem = 4
         for i in range(len(lines)):
             pos = lines[i].find(':')
             if pos == -1:
@@ -105,16 +106,23 @@ class Translator:
                 pointer = counter
             # Points to the memory cell
             elif len(line) == 3:
-                datatype = symbol2datatype(line[1])
+                datatype = symbol2datatype(line[1]).name
                 if datatype is None:
                     raise ValueError(f'There is no such data type.\n line:{i} {line[i]}')
                 var_type = datatype
-                val = int(line[2])
+                # Previously casted line[2] to int
+                val = line[2]
+                quotes = val.find('\'')
+                if quotes != -1:
+                    val = val.replace('\'', '')
+                back_slash = val.find('\\')
+                if back_slash != -1:
+                    val = val[back_slash+1:]
                 pointer = pos_in_data_mem
                 self.labels.append({
                     'name' : f'{name}',
                     'type' : f'{var_type}',
-                    'val' : f'{val}',
+                    'val' : val,
                     'pos_in_data_mem': f'{pos_in_data_mem}'
                 })
             self.label_pos[name] = pointer
@@ -127,7 +135,7 @@ class Translator:
             pos = lines[i].find(':')
             if pos != -1:
                 continue
-            opcode = symbol2opcode(line[0])
+            opcode = symbol2opcode(line[0]).name
             if opcode is None:
                 raise ValueError(f'There is no such instruction: {line[0]}')
             # instructions with no operand
@@ -145,3 +153,19 @@ class Translator:
                 'pos_in_instr_mem': f'{counter}'
             })
             counter += 1
+
+
+def main():
+    parser = argparse.ArgumentParser()
+    parser.add_argument('inputs', metavar='INPUT', nargs='*', help='<file_with_programm> <file for encoded instructions> <file for encoded data>')
+    args = parser.parse_args().inputs
+    assert len(args) > 1, 'The number of arguments have to be at least 2'
+
+    t = Translator(*args)
+    t.translate()
+
+    
+
+
+if __name__ == "__main__":
+    main()
