@@ -15,7 +15,7 @@ def symbol2opcode(symbol):
     'cmp' : Opcode.cmp,
     'jz' : Opcode.jz,
     'push' : Opcode.push,
-    'pop' : Opcode.push,
+    'pop' : Opcode.pop,
     'iret' : Opcode.iret,
     'ei' : Opcode.ei,
     'di' : Opcode.di,
@@ -115,6 +115,13 @@ class Translator:
                 quotes = val.find('\'')
                 if quotes != -1:
                     val = val.replace('\'', '')
+                if val == '\\0':
+                    val = '\0'
+                if var_type == 'char':
+                    val = ord(val)
+                # Строка - набор char, каждый char храниться в отдельной ячейке
+                if var_type is DataType.string:
+                    self.save_string_in_mem()
                 pointer = pos_in_data_mem
                 self.labels.append({
                     'name' : f'{name}',
@@ -124,6 +131,9 @@ class Translator:
                 })
                 pos_in_data_mem += 1
             self.label_pos[name] = pointer
+    
+    def save_string_in_mem(self):
+        pass
 
     def parse_instructions(self, lines: list):
         counter = 0

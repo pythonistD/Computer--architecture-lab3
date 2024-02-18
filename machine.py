@@ -4,12 +4,12 @@ import logging
 import argparse
 import json
 
-from isa import Opcode, DataType, load_code_data
+from isa import Opcode, DataType, load_code_data, encode_data
 
-instructions = {Opcode.add, Opcode.cmp, Opcode.load, Opcode.mod, Opcode.di, Opcode.ei, Opcode.hlt, Opcode.push, Opcode.pop, Opcode.iret}
+instructions = {Opcode.add, Opcode.cmp, Opcode.load, Opcode.mod, Opcode.di, Opcode.ei, Opcode.hlt, Opcode.store}
 control_flow = {Opcode.jmp, Opcode.jnz, Opcode.jz}
 arithmetic_ops = {Opcode.add, Opcode.sub, Opcode.mod}
-address_instructions = {Opcode.add, Opcode.cmp, Opcode.load, Opcode.mod}
+address_instructions = {Opcode.add, Opcode.cmp, Opcode.load, Opcode.mod, Opcode.store}
 stack_instructions = {Opcode.push, Opcode.pop, Opcode.iret}
 
 class MemType(Enum):
@@ -22,24 +22,40 @@ class ExternalDevice:
     input_data: Optional[list]
     output_data: list
     pointer: int
-    interrupt_vector_address: int = 2
+    interrupt_vector_address: int
 
     time_c : int
 
     def __init__(self, input_data: Optional[list]=None) -> None:
         self.input_data = input_data
+        self.output_data = []
+        self.pointer = 0
+        self.interrupt_vector_address = 2
         self.time_c = 0
     
     def get_cur_char(self) -> tuple[int, str]:
+        if self.pointer >= len(self.input_data):
+            # Костыли, нужны, чтобы не прерывать симуляцию из-за того, что pointer указывает за границу буфера
+            return (0,'')
         return self.input_data[self.pointer]
 
     def send_char(self) -> dict:
-        char = self.input_data[self.pointer]
+        if self.pointer >= len(self.input_data):
+            raise BufferError('buffer is empty')
+        char = ord(self.input_data[self.pointer][1])
         self.pointer += 1
-        return char
+        logger.debug(f'CHAR_IN: {chr(char)}')
+        return {
+                "name": "char_from_input_device",
+                "type": DataType.char,
+                "val": char,
+                "pos_in_data_mem": "0"
+                }
+
 
     def read_char(self, char):
-        self.output_data.append(char)
+        self.output_data.append(chr(int(char)))
+        logger.debug(f'CHAR_OUT: {chr(char)}')
 
 
 class ALU:
@@ -86,7 +102,7 @@ class ALU:
 class DataPath:
     pc: int
     ar: int
-    acc: int
+    acc: dict
     sp: int
     ir: dict
     dr: dict
@@ -99,57 +115,54 @@ class DataPath:
     out_dev: ExternalDevice
 
 
-    def __init__(self, start_cell_isr: int, isr: list, input_device: ExternalDevice, output_device: ExternalDevice) -> None:
+    def __init__(self, start_cell_isr: int, isr_prog: list, isr_data: list, input_device: ExternalDevice, output_device: ExternalDevice) -> None:
         # Sp points to 2048, because initially in stack no data
         self.sp = 2048
-        self.pc = 0
-        self.acc = 0
+        self.acc = encode_data('empty acc', 0, DataType.num)
         self.ar = 0
         self.ir = 0
         self.dr = 0
         self.inst_mem = [0] * (2 ** 11)
         self.data_mem = [0] * (2 ** 11)
-        self.load_program_in_mem(start_cell_isr, isr, True)
-        self.data_mem[3] = {
-            "name": "in_d",
-            "type": "num",
-            "val": "0",
-            "pos_in_data_mem": "3"
-        }
         self.inst_mem[2] = start_cell_isr
+        self.data_mem[2] = encode_data('interrupt vector', start_cell_isr, DataType.num)
+    # Указывают на первую свободную ячейку памяти, нужны для загрузки нескольких программ в память
+        self.instr_empty_cell = 0
+        self.data_empty_cell = 3
+        self.load_program_in_mem(isr_prog, isr_data)
+        # В instr_empty_cell запишется первая инструкция основной программы
+        self.pc = self.instr_empty_cell
+
         self.alu = ALU()
         self.in_dev = input_device
         self.out_dev = output_device
 
-        self.empty_cell = 3
-
-
-    def load_program_in_mem(self, base, instr_or_data: list, instr_mem: bool=True):
-        counter = 0
-        mem = self.inst_mem
-        if instr_mem is False:
-            mem = self.data_mem
-        for i in range(base, base + len(instr_or_data)):
-            mem[i] = instr_or_data[counter]
-            counter += 1
-
     
-    def load_program_in_mem_test(self, base_inst, instr: list, base_data, data: list):
+    def load_program_in_mem(self, instr: list, data: list):
         counter = 0
-        for i in range(base_data, base_data + len(data)):
+        d_offset = self.data_empty_cell
+        instr_offset = self.instr_empty_cell
+        for i in range(d_offset, d_offset + len(data)):
             self.data_mem[i] = data[counter]
             counter += 1
+        self.data_empty_cell = self.data_empty_cell + counter 
         counter = 0
-        for i in range(base_inst, base_inst + len(instr)):
-            instr[counter]['arg']
+        for i in range(instr_offset, instr_offset + len(instr)):
+            if instr[counter]['opcode'] in {Opcode.add, Opcode.sub, Opcode.cmp, Opcode.load, Opcode.store, Opcode.mod}:
+                # Из-за того, что адреса ячеек данные смещены, т.к в памяти данных уже имеются другие значения
+                instr[counter]['arg'] += d_offset
+            elif instr[counter]['opcode'] in {Opcode.jmp, Opcode.jnz, Opcode.jz}:
+                # Инструкции тоже смещены, если загружаемая программа загружается не первой.
+                instr[counter]['arg'] += instr_offset
             self.inst_mem[i] = instr[counter]
             counter += 1
+        self.instr_empty_cell = self.instr_empty_cell + counter 
 
     def latch_pc(self, sel: Opcode, arg: Optional[int] = None):
-        if sel not in control_flow:
+        if (sel not in control_flow) and (sel is not Opcode.iret):
             self.pc += 1
         elif sel is Opcode.iret:
-            self.pc = self.acc
+            self.pc = int(self.dr['val'])
         else:
             self.pc = arg
     
@@ -159,21 +172,17 @@ class DataPath:
         elif sel in address_instructions:
             self.ar = int(self.ir['arg'])
         elif sel is Opcode.indirect:
-            self.ar = int(self.dr)
+            self.ar = int(self.dr['val'])
         elif sel in stack_instructions:
             self.ar = self.sp
 
     def latch_acc(self, sel):
         if sel is Opcode.interrupt:
-            self.acc = self.pc
-        elif sel is Opcode.load:
-            if self.dr['type'] is DataType.char:
-                val_to_acc = ord(self.dr['val'])
-            elif self.dr['type'] is DataType.num:
-                val_to_acc = int(self.dr['val'])
-            self.acc = val_to_acc
-        elif sel is arithmetic_ops:
-            self.acc = self.alu.operation_res
+            self.acc = encode_data('saved_pc', self.pc, DataType.num)
+        elif sel in {Opcode.load, Opcode.pop}:
+            self.acc = self.dr
+        elif sel in arithmetic_ops:
+            self.acc = encode_data(f'{sel} operation res', self.alu.operation_res, DataType.num)
 
     def latch_sp(self, sel):
         if sel in {Opcode.push, Opcode.interrupt}:
@@ -186,22 +195,22 @@ class DataPath:
             self.sp += 1
     
     def latch_alu(self):
-        self.alu.left_in = self.acc
-        t = self.dr['val']
-        self.alu.right_in = ord(self.dr['val'])
+        self.alu.left_in = int(self.acc['val'])
+        self.alu.right_in = int(self.dr['val'])
 
     def read_from_mem(self, mem_type):
         if mem_type is MemType.instruction_mem:
             self.ir = self.inst_mem[self.pc]
         elif mem_type is MemType.data_mem:
             if self.ar == 0:
-                self.dr = self.in_dev.send_char() 
+                self.dr = self.in_dev.send_char()
+                t = self.dr
             else:
                 self.dr = self.data_mem[self.ar]
     
     def write_to_data_mem(self):
         if self.ar == 1:
-            self.out_dev.read_char(self.acc)
+            self.out_dev.read_char(self.acc['val'])
         else:
             self.data_mem[self.ar] = self.acc
 
@@ -236,7 +245,9 @@ class ControUnit:
             self.execute_control_flow_instruction(cur_inst, arg)
         elif cur_inst in stack_instructions:
             self.excute_stack_instructions(cur_inst)
-            self.datapath.latch_pc(cur_inst)
+            # Костыли, исп. Opcode.push т.к при Opcode.iret в pc записывается acc, но мне на данном этапе нужно просто инкрементировать pc
+            if cur_inst is not Opcode.iret:
+                self.datapath.latch_pc(cur_inst)
         # Check for interrupt request
         self.check_for_interrupt()
 
@@ -286,10 +297,18 @@ class ControUnit:
             self.datapath.read_from_mem(MemType.data_mem)
             self.datapath.latch_sp(instr)
             self.tick()
-            self.datapath.latch_acc(instr)
-            self.tick()
             self.datapath.latch_pc(instr)
+            # read previous acc value to the acc
+            #self.datapath.latch_ar(instr)
+            #self.tick()
+            #self.datapath.read_from_mem(MemType.data_mem)
+            #self.datapath.latch_sp(instr)
+            #self.tick()
+            #self.datapath.latch_acc(Opcode.load)
+            self.ei = True
+            self.interrupt = False
             self.tick()
+            logger.debug('-----------Interrupt-Ended-----------')
 
     def execute_basic_instructions(self, instr, ad_type):
         # ad_type == True => indirect address
@@ -340,14 +359,30 @@ class ControUnit:
         # One tick to check for interrupt request
         self.tick()
         if (self.ei == True) and (self.interrupt == True):
+            logger.debug('-----------Interrupt-Started-----------')
             self.do_interrupt()
 
 
     def do_interrupt(self):
+        self.ei = False
+        logger.debug('EI switched to False')
         self.save_context()
         self.find_isr()
 
     def save_context(self):
+        # Сначала сохраняем acc, т.к. при сохранении pc он будет использоваться
+        #self.save_acc()
+        self.save_pc()
+
+    def save_acc(self):
+        # Для push необходимо сначала инкрементировать SP, поэтому сначала вызываем latch_sp
+        self.datapath.latch_sp(Opcode.push)
+        self.tick()
+        self.datapath.latch_ar(Opcode.push)
+        self.datapath.write_to_data_mem()
+        self.tick()
+
+    def save_pc(self):
         self.datapath.latch_acc(Opcode.interrupt)
         self.datapath.latch_sp(Opcode.push)
         self.tick()
@@ -355,6 +390,8 @@ class ControUnit:
         # tick?
         self.datapath.write_to_data_mem()
         self.tick()
+        logger.debug(f'save_pc: ar:{self.datapath.ar} mem[ar]:{self.datapath.data_mem[self.datapath.ar]}')
+
 
     def find_isr(self):
         # Write into AR adress where interrupt vector is stored
@@ -366,49 +403,55 @@ class ControUnit:
         self.tick()
         self.datapath.latch_pc(Opcode.iret)
         self.tick()
+        logger.debug(f'find_isr: ar:{self.datapath.ar} mem[ar]:{self.datapath.data_mem[self.datapath.ar]}')
+        logger.debug('-----------Execute-ISR-----------')
     
         
     def tick(self):
         self._tick += 1
 
     def __repr__(self) -> str:
-        state_repr = 'tick {} pc {} ar {} mem_out {} acc {} ei {}'.format(
+        state_repr = 'tick:{} pc:{} ar:{} acc:{} ei:{} interrupt:{}'.format(
             self._tick,
             self.datapath.pc,
             self.datapath.ar,
-            self.datapath.data_mem[self.datapath.ar],
-            self.datapath.acc,
-            self.ei
+            self.datapath.acc['val'],
+            self.ei,
+            self.interrupt
         )
         cur_instr = self.datapath.inst_mem[self.datapath.pc]
         print(cur_instr['opcode'].name)
         opcode = cur_instr['opcode'].name
         arg = cur_instr['arg']
-        arg_in_data_mem = self.datapath.data_mem[arg]
-        instr_repr = '{} {} {}'.format(opcode, arg, arg_in_data_mem)
+        if arg is not None:
+            arg_in_data_mem = self.datapath.data_mem[arg]
+        else:
+            arg_in_data_mem = None
+        instr_repr = 'Opcode:{} Arg:{} Mem[arg]:{}'.format(opcode, arg, arg_in_data_mem)
         return '{} \t{}'.format(state_repr, instr_repr)
 
 
 
 
 def simulation(limit: int, inst_mem: list, data_mem: list, inst_isr, data_isr):
-    in_dev = ExternalDevice([(1, 'h'), (10, 'e'), (20, 'l'), (25, 'l'), (100, 'o')])
+    in_dev = ExternalDevice(input_data=[(1, 'h'), (10, 'e'), (20, 'l'), (25, 'l'), (30, 'o'), (35, '\0')])
     out_dev = ExternalDevice()
-    datapath = DataPath(start_cell_isr=1947, isr=inst_isr, input_device=in_dev, output_device=out_dev)
-    datapath.load_program_in_mem(0, inst_mem, instr_mem=True)
-    datapath.load_program_in_mem(4, data_mem, instr_mem=False)
+    datapath = DataPath(start_cell_isr=0, isr_prog=inst_isr, isr_data=data_isr, input_device=in_dev, output_device=out_dev)
+    datapath.load_program_in_mem(inst_mem, data_mem)
     controlunit = ControUnit(input_device=in_dev, datapath=datapath)
     try:
         c = 0
         while c < limit:
             logger.debug('%s', controlunit)
-            if in_dev.get_cur_char()[0] == c:
+            if in_dev.get_cur_char()[0] <= c:
                 controlunit.interrupt = True
             print(controlunit)
             controlunit.execute()
             c += 1
     except SystemExit:
-        logger.debug(f'Simulation stopted by HLT command Total ticks: {controlunit._tick}')
+        logger.error(f'Simulation stopted by HLT command Total ticks: {controlunit._tick}')
+    except BufferError:
+        logger.error('Input buffer is empty')
 
 
 def main():
@@ -419,7 +462,7 @@ def main():
 
     inst_p, data_p = load_code_data(args[0], args[1])
 
-    inst_isr, data_isr = load_code_data('static/inst_isr.json', 'static/data_mem.json')
+    inst_isr, data_isr = load_code_data('static/isr/instr.json', 'static/isr/data.json')
 
     
     simulation(limit=1000, inst_mem=inst_p, data_mem=data_p, inst_isr=inst_isr, data_isr=data_isr)

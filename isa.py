@@ -46,3 +46,10 @@ def load_code_data(inst, data):
         for d in data:
             d['type'] = DataType(d['type'])
     return instructions, data
+
+def encode_data(name:str, val, d_type:DataType) -> dict:
+    return {
+        'name': name,
+        'type': d_type,
+        'val': f'{val}'
+    }
