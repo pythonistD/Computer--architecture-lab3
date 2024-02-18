@@ -2,6 +2,7 @@ from typing import Optional
 from enum import Enum
 import logging
 import argparse
+from collections import deque
 import json
 
 from isa import Opcode, DataType, load_code_data, encode_data
@@ -18,32 +19,25 @@ class MemType(Enum):
 
 
 class ExternalDevice:
-    ei_or_di: bool
-    input_data: Optional[list]
+    in_data: Optional[deque]
     output_data: list
-    pointer: int
     interrupt_vector_address: int
 
-    time_c : int
-
-    def __init__(self, input_data: Optional[list]=None) -> None:
-        self.input_data = input_data
+    def __init__(self, input_data: Optional[deque]=None) -> None:
+        self.in_data = input_data
         self.output_data = []
-        self.pointer = 0
         self.interrupt_vector_address = 2
-        self.time_c = 0
     
     def get_cur_char(self) -> tuple[int, str]:
-        if self.pointer >= len(self.input_data):
-            # Костыли, нужны, чтобы не прерывать симуляцию из-за того, что pointer указывает за границу буфера
-            return (0,'')
-        return self.input_data[self.pointer]
+        if len(self.in_data) == 0:
+            return (-1, '')
+        return self.in_data[0]
 
     def send_char(self) -> dict:
-        if self.pointer >= len(self.input_data):
-            raise BufferError('buffer is empty')
-        char = ord(self.input_data[self.pointer][1])
-        self.pointer += 1
+        if len(self.in_data) == 0:
+            raise BufferError
+        char = ord(self.in_data[0][1])
+        self.in_data.popleft()
         logger.debug(f'CHAR_IN: {chr(char)}')
         return {
                 "name": "char_from_input_device",
@@ -434,7 +428,7 @@ class ControUnit:
 
 
 def simulation(limit: int, inst_mem: list, data_mem: list, inst_isr, data_isr):
-    in_dev = ExternalDevice(input_data=[(1, 'h'), (10, 'e'), (20, 'l'), (25, 'l'), (30, 'o'), (35, '\0')])
+    in_dev = ExternalDevice(input_data=deque([(1, 'h'), (10, 'e'), (20, 'l'), (25, 'l'), (30, 'o'), (35, '\0')]))
     out_dev = ExternalDevice()
     datapath = DataPath(start_cell_isr=0, isr_prog=inst_isr, isr_data=data_isr, input_device=in_dev, output_device=out_dev)
     datapath.load_program_in_mem(inst_mem, data_mem)
@@ -443,8 +437,9 @@ def simulation(limit: int, inst_mem: list, data_mem: list, inst_isr, data_isr):
         c = 0
         while c < limit:
             logger.debug('%s', controlunit)
-            if in_dev.get_cur_char()[0] <= c:
-                controlunit.interrupt = True
+            if len(in_dev.in_data) != 0:
+                if in_dev.get_cur_char()[0] <= c:
+                    controlunit.interrupt = True
             print(controlunit)
             controlunit.execute()
             c += 1
