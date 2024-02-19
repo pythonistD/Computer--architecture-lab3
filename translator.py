@@ -20,7 +20,9 @@ def symbol2opcode(symbol):
     'ei' : Opcode.ei,
     'di' : Opcode.di,
     'hlt' : Opcode.hlt,
-    'jnz' : Opcode.jnz
+    'jnz' : Opcode.jnz,
+    'jn': Opcode.jn,
+    'jnn': Opcode.jnn
     }.get(symbol)
 
 def symbol2datatype(symbol):
@@ -197,8 +199,7 @@ class Translator:
             self.instructions.append({
                 'opcode' : f'{opcode}',
                 'arg' : f'{arg}',
-                'address_type': address_type,
-                'pos_in_instr_mem': f'{counter}'
+                'address_type': address_type
             })
             counter += 1
 

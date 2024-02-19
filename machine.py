@@ -8,7 +8,7 @@ import json
 from isa import Opcode, DataType, load_code_data, encode_data
 
 instructions = {Opcode.add, Opcode.cmp, Opcode.load, Opcode.mod, Opcode.di, Opcode.ei, Opcode.hlt, Opcode.store}
-control_flow = {Opcode.jmp, Opcode.jnz, Opcode.jz}
+control_flow = {Opcode.jmp, Opcode.jnz, Opcode.jz, Opcode.jn, Opcode.jnn}
 arithmetic_ops = {Opcode.add, Opcode.sub, Opcode.mod}
 address_instructions = {Opcode.add, Opcode.cmp, Opcode.load, Opcode.mod, Opcode.store}
 stack_instructions = {Opcode.push, Opcode.pop, Opcode.iret}
@@ -49,12 +49,15 @@ class ExternalDevice:
 
     def read_char(self, char):
         self.output_data.append(chr(int(char)))
-        logger.debug(f'CHAR_OUT: {chr(char)}')
+        logger.debug(f'CHAR_OUT: {chr(int(char))}')
         if chr(int(char)) == '\0':
             word = ''.join(self.output_data)
             logger.debug(f'THE WHOLE WORD: {word}')
             print(*self.output_data)
             #self.output_data = []
+    def read_int(self, num):
+        self.output_data.append(num)
+        logger.debug(f'INT_OUT: {num}')
 
 
 class ALU:
@@ -62,12 +65,14 @@ class ALU:
     left_in: Optional[int]
     right_in: Optional[int]
     zero_flag: bool
+    negative_flag: bool
 
     def __init__(self) -> None:
         self.operation_res = 0
         self.left_in = 0
         self.right_in = 0
         self.zero_flag = False
+        self.negative_flag = False
 
     def do_arithmetic(self, opcode: Opcode):
         if opcode is Opcode.add:
@@ -78,6 +83,8 @@ class ALU:
             self.mod_op()
         elif opcode is Opcode.cmp:
             self.sub_op()
+        self.check_if_zero()
+        self.check_if_negative()
 
     def check_if_zero(self):
         if self.operation_res == 0:
@@ -85,17 +92,20 @@ class ALU:
         else:
             self.zero_flag = False
 
+    def check_if_negative(self):
+        if self.operation_res < 0:
+            self.negative_flag = True
+        else:
+            self.negative_flag = False
+
     def add_op(self):
         self.operation_res = self.left_in + self.right_in
-        self.check_if_zero()
 
     def sub_op(self):
         self.operation_res = self.left_in - self.right_in
-        self.check_if_zero()
    
     def mod_op(self):
         self.operation_res = self.left_in % self.right_in
-        self.check_if_zero()
 
 
 class DataPath:
@@ -153,7 +163,7 @@ class DataPath:
             if instr[counter]['opcode'] in {Opcode.add, Opcode.sub, Opcode.cmp, Opcode.load, Opcode.store, Opcode.mod}:
                 # Из-за того, что адреса ячеек данные смещены, т.к в памяти данных уже имеются другие значения
                 instr[counter]['arg'] += d_offset
-            elif instr[counter]['opcode'] in {Opcode.jmp, Opcode.jnz, Opcode.jz}:
+            elif instr[counter]['opcode'] in {Opcode.jmp, Opcode.jnz, Opcode.jz, Opcode.jn, Opcode.jnn}:
                 # Инструкции тоже смещены, если загружаемая программа загружается не первой.
                 instr[counter]['arg'] += instr_offset
             self.inst_mem[i] = instr[counter]
@@ -212,7 +222,10 @@ class DataPath:
     
     def write_to_data_mem(self):
         if self.ar == 1:
-            self.out_dev.read_char(self.acc['val'])
+            if self.acc['type'] == DataType.char:
+                self.out_dev.read_char(self.acc['val'])
+            elif self.acc['type'] == DataType.num:
+                self.out_dev.read_int(self.acc['val'])
         else:
             self.data_mem[self.ar] = self.acc
 
@@ -264,12 +277,27 @@ class ControUnit:
             if self.datapath.alu.zero_flag:
                 self.datapath.latch_pc(instr, arg)
             else:
+                # Костыли, нужно, чтобы произошёл простой инкремент PC, который происходит после выполнения базовой операции
                 self.datapath.latch_pc(Opcode.add)
             # The second to latch pc
             self.tick()
         elif instr is Opcode.jnz:
             self.tick()
             if self.datapath.alu.zero_flag == False:
+                self.datapath.latch_pc(instr, arg)
+            else:
+                self.datapath.latch_pc(Opcode.add)
+            self.tick()
+        elif instr is Opcode.jn:
+            self.tick()
+            if self.datapath.alu.negative_flag:
+                self.datapath.latch_pc(instr, arg)
+            else:
+                self.datapath.latch_pc(Opcode.add)
+            self.tick()
+        elif instr is Opcode.jnn:
+            self.tick()
+            if self.datapath.alu.negative_flag == False:
                 self.datapath.latch_pc(instr, arg)
             else:
                 self.datapath.latch_pc(Opcode.add)
@@ -436,8 +464,8 @@ class ControUnit:
 
 def simulation(limit: int, inst_mem: list, data_mem: list, inst_isr, data_isr):
     #in_dev = ExternalDevice(input_data=deque([(1, 'h'), (10, 'e'), (20, 'l'), (25, 'l'), (30, 'o'), (35, '\0')]))
-    #in_dev = ExternalDevice(input_data=deque([]))
-    in_dev = ExternalDevice(input_data=deque([(1, 'p'), (10, 'y'), (20, 't'), (25, 'h'), (30, 'o'), (35, 'n'), (45, 'i'), (55, 's'), (60, 't'), (65, 'D'), (67, '\0')]))
+    in_dev = ExternalDevice(input_data=deque([]))
+    #in_dev = ExternalDevice(input_data=deque([(1, 'p'), (10, 'y'), (20, 't'), (25, 'h'), (30, 'o'), (35, 'n'), (45, 'i'), (55, 's'), (60, 't'), (65, 'D'), (67, '\0')]))
     out_dev = ExternalDevice()
     datapath = DataPath(start_cell_isr=0, isr_prog=inst_isr, isr_data=data_isr, input_device=in_dev, output_device=out_dev)
     datapath.load_program_in_mem(inst_mem, data_mem)
@@ -470,7 +498,7 @@ def main():
     inst_isr, data_isr = load_code_data('static/isr/instr.json', 'static/isr/data.json')
 
     
-    simulation(limit=1000, inst_mem=inst_p, data_mem=data_p, inst_isr=inst_isr, data_isr=data_isr)
+    simulation(limit=100000, inst_mem=inst_p, data_mem=data_p, inst_isr=inst_isr, data_isr=data_isr)
     
 
 
