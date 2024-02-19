@@ -92,48 +92,80 @@ class Translator:
     
     def parse_labels(self, lines: list) -> None:
         # Count position of instruction to which label points
-        counter = 0
-        pos_in_data_mem = 0
+        data_mem_pointer = 0
+        instr_mem_pointer = 0
         for i in range(len(lines)):
             pos = lines[i].find(':')
+            string = None
             if pos == -1:
-                counter += 1
+                instr_mem_pointer += 1
                 continue
+            quotes = lines[i].find('\'')
+            if quotes != -1:
+                string = lines[i][quotes:]
+                lines[i] =lines[i][:quotes]
             line = lines[i].split(' ')
             name = line[0][:pos]
-            # Points to the instruction
-            if len(line) == 1:
-                pointer = counter
             # Points to the memory cell
-            elif len(line) == 3:
+            if len(line) == 1:
+                self.label_pos[name] = instr_mem_pointer
+            if (len(line) == 3) or string:
+                l2l = False
                 datatype = symbol2datatype(line[1]).name
                 if datatype is None:
                     raise ValueError(f'There is no such data type.\n line:{i} {line[i]}')
                 var_type = datatype
                 # Previously casted line[2] to int
                 val = line[2]
-                quotes = val.find('\'')
-                if quotes != -1:
-                    val = val.replace('\'', '')
-                if val == '\\0':
-                    val = '\0'
-                if var_type == 'char':
+                # Если нужно получить в переменную адрес другой переменной
+                # word: string 'hello'
+                # pointer: num word
+                if val in self.label_pos:
+                    val = str(self.label_pos[val])
+                    l2l = True
+                if var_type == DataType.char.name:
+                    val = string
+                    quotes = val.find('\'')
+                    if quotes != -1:
+                        val = val.replace('\'', '')
+                    if val == '\\n':
+                        val = '\n'
+                    if val == '\\0':
+                        val = '\0'
                     val = ord(val)
                 # Строка - набор char, каждый char храниться в отдельной ячейке
-                if var_type is DataType.string:
-                    self.save_string_in_mem()
-                pointer = pos_in_data_mem
+                if var_type is DataType.string.name:
+                    self.label_pos[name] = data_mem_pointer
+                    offset = self.save_string_in_mem(string)
+                    data_mem_pointer += offset
+                    continue
                 self.labels.append({
                     'name' : f'{name}',
                     'type' : f'{var_type}',
                     'val' : val,
-                    'pos_in_data_mem': f'{pos_in_data_mem}'
+                    'l2l': l2l
                 })
-                pos_in_data_mem += 1
-            self.label_pos[name] = pointer
+                self.label_pos[name] = data_mem_pointer
+                data_mem_pointer += 1
     
-    def save_string_in_mem(self):
-        pass
+    def save_string_in_mem(self, string: str) -> int:
+        quotes = string.find('\'')
+        if quotes != -1:
+            string = string.replace('\'', '')
+        nul_char = string.find('\\0')
+        if nul_char == -1:
+            raise SyntaxError('string must be nul terminated')
+        else:
+            string = string[:nul_char]
+            string += '\0'
+        for char in string:
+            self.labels.append({
+                    'name' : f'{char}',
+                    'type' : 'char',
+                    'val' : ord(char),
+                    'l2l': False
+                })
+        return len(string)
 
     def parse_instructions(self, lines: list):
         counter = 0

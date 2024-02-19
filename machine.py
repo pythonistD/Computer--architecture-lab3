@@ -50,6 +50,11 @@ class ExternalDevice:
     def read_char(self, char):
         self.output_data.append(chr(int(char)))
         logger.debug(f'CHAR_OUT: {chr(char)}')
+        if chr(int(char)) == '\0':
+            word = ''.join(self.output_data)
+            logger.debug(f'THE WHOLE WORD: {word}')
+            print(*self.output_data)
+            #self.output_data = []
 
 
 class ALU:
@@ -137,6 +142,9 @@ class DataPath:
         d_offset = self.data_empty_cell
         instr_offset = self.instr_empty_cell
         for i in range(d_offset, d_offset + len(data)):
+            if data[counter]['l2l'] == True:
+                val = int(data[counter]['val']) + d_offset
+                data[counter]['val'] = val
             self.data_mem[i] = data[counter]
             counter += 1
         self.data_empty_cell = self.data_empty_cell + counter 
@@ -414,7 +422,6 @@ class ControUnit:
             self.interrupt
         )
         cur_instr = self.datapath.inst_mem[self.datapath.pc]
-        print(cur_instr['opcode'].name)
         opcode = cur_instr['opcode'].name
         arg = cur_instr['arg']
         if arg is not None:
@@ -428,7 +435,9 @@ class ControUnit:
 
 
 def simulation(limit: int, inst_mem: list, data_mem: list, inst_isr, data_isr):
-    in_dev = ExternalDevice(input_data=deque([(1, 'h'), (10, 'e'), (20, 'l'), (25, 'l'), (30, 'o'), (35, '\0')]))
+    #in_dev = ExternalDevice(input_data=deque([(1, 'h'), (10, 'e'), (20, 'l'), (25, 'l'), (30, 'o'), (35, '\0')]))
+    #in_dev = ExternalDevice(input_data=deque([]))
+    in_dev = ExternalDevice(input_data=deque([(1, 'p'), (10, 'y'), (20, 't'), (25, 'h'), (30, 'o'), (35, 'n'), (45, 'i'), (55, 's'), (60, 't'), (65, 'D'), (67, '\0')]))
     out_dev = ExternalDevice()
     datapath = DataPath(start_cell_isr=0, isr_prog=inst_isr, isr_data=data_isr, input_device=in_dev, output_device=out_dev)
     datapath.load_program_in_mem(inst_mem, data_mem)
@@ -440,11 +449,12 @@ def simulation(limit: int, inst_mem: list, data_mem: list, inst_isr, data_isr):
             if len(in_dev.in_data) != 0:
                 if in_dev.get_cur_char()[0] <= c:
                     controlunit.interrupt = True
-            print(controlunit)
             controlunit.execute()
             c += 1
     except SystemExit:
         logger.error(f'Simulation stopted by HLT command Total ticks: {controlunit._tick}')
+        if len(out_dev.output_data) != 0:
+            print(*out_dev.output_data)
     except BufferError:
         logger.error('Input buffer is empty')
 
