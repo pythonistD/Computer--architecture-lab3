@@ -22,8 +22,6 @@ def test_translator_and_machine(golden):
 
         with open(source, "w", encoding="utf-8") as file:
             file.write(golden["in_source"])
-        #with open(input_stream, "w", encoding="utf-8") as file:
-            #file.write(golden["in_stdin"])
         
         t = Translator(source, instr, data)
 
@@ -36,10 +34,10 @@ def test_translator_and_machine(golden):
 
         with contextlib.redirect_stdout(io.StringIO()) as stdout:
             t.translate()
-            code, d = load_code_data(instr, data)
+            code_p, d = load_code_data(instr, data)
             code_isr, d_isr = load_code_data('static/isr/instr.json', 'static/isr/data.json')
             print("============================================================")
-            simulation(100000, code, d, code_isr, d_isr, golden['in_stdin'])
+            simulation(100000, code_p, d, code_isr, d_isr, golden['in_stdin'])
         with open(instr, 'r', encoding='utf-8') as f:
             code = f.read()
 

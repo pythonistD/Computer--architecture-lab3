@@ -47,7 +47,10 @@ class ExternalDevice:
         #print(self.in_data[0][1])
         char = ord(self.in_data[0][1])
         self.in_data.popleft()
-        logger.debug(f'CHAR_IN: {chr(char)}')
+        ch_for_log = chr(char)
+        if ch_for_log == '\0':
+            ch_for_log = 'null'
+        logger.debug(f'CHAR_IN: {ch_for_log}')
         return {
                 "name": "char_from_input_device",
                 "type": DataType.char,
@@ -461,10 +464,12 @@ class ControUnit:
         cur_instr = self.datapath.inst_mem[self.datapath.pc]
         opcode = cur_instr['opcode'].name
         arg = cur_instr['arg']
-        if arg is not None:
+        if (arg is not None) and (opcode not in {'jmp', 'jz', 'jnz', 'jn', 'jnn'}):
             arg_in_data_mem = self.datapath.data_mem[arg]
         else:
-            arg_in_data_mem = None
+            arg_in_data_mem = "null"
+        if arg is None:
+            arg = "null"
         instr_repr = 'Opcode:{} Arg:{} Mem[arg]:{}'.format(opcode, arg, arg_in_data_mem)
         return '{} \t{}'.format(state_repr, instr_repr)
 
@@ -512,7 +517,6 @@ def main():
     #data = [(1, 'p'), (10, 'y'), (20, 't'), (25, 'h'), (30, 'o'), (35, 'n'), (45, 'i'), (55, 's'), (60, 't'), (65, 'D'), (67, '\0')]    
     with open('static/echo/input.yml', 'r', encoding='utf-8') as f:
         ym = yaml.safe_load(f.read())
-    print(ym)
     data = ym
     simulation(limit=100000, inst_mem=inst_p, data_mem=data_p, inst_isr=inst_isr, data_isr=data_isr, input_data=data)
     

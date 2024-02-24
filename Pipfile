@@ -5,8 +5,8 @@ name = "pypi"
 
 [packages]
 pytest = "*"
-pytest-golden = "*"
 pyyaml = "*"
+pytest-golden = "~=0.2.2"
 
 [dev-packages]
 

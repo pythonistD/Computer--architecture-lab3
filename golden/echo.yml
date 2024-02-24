@@ -1,0 +1,463 @@
+in_source: |
+  .data:
+      buf_address: num 1998
+      nul: char '\0'
+      out_d: num 1
+      one: num 1
+  .text:
+      di
+      load one
+      loop:
+          ei
+          di
+          cmp nul
+          jnz loop
+      print:
+          load [buf_address]
+          cmp nul
+          jz exit
+          store [out_d]
+          load buf_address
+          add one
+          store buf_address
+          jmp print
+      exit:
+          hlt
+in_stdin:
+- [1, p]
+- [5, y]
+- [1, t]
+- [5, h]
+- [1, o]
+- [5, n]
+- [1, i]
+- [5, s]
+- [1, t]
+- [5, D]
+- [1, "\0"]
+out_code: |-
+  [
+      {
+          "opcode": "di",
+          "arg": "None",
+          "address_type": false
+      },
+      {
+          "opcode": "load",
+          "arg": "3",
+          "address_type": false
+      },
+      {
+          "opcode": "ei",
+          "arg": "None",
+          "address_type": false
+      },
+      {
+          "opcode": "di",
+          "arg": "None",
+          "address_type": false
+      },
+      {
+          "opcode": "cmp",
+          "arg": "1",
+          "address_type": false
+      },
+      {
+          "opcode": "jnz",
+          "arg": "2",
+          "address_type": false
+      },
+      {
+          "opcode": "load",
+          "arg": "0",
+          "address_type": true
+      },
+      {
+          "opcode": "cmp",
+          "arg": "1",
+          "address_type": false
+      },
+      {
+          "opcode": "jz",
+          "arg": "14",
+          "address_type": false
+      },
+      {
+          "opcode": "store",
+          "arg": "2",
+          "address_type": true
+      },
+      {
+          "opcode": "load",
+          "arg": "0",
+          "address_type": false
+      },
+      {
+          "opcode": "add",
+          "arg": "3",
+          "address_type": false
+      },
+      {
+          "opcode": "store",
+          "arg": "0",
+          "address_type": false
+      },
+      {
+          "opcode": "jmp",
+          "arg": "6",
+          "address_type": false
+      },
+      {
+          "opcode": "hlt",
+          "arg": "None",
+          "address_type": false
+      }
+  ]
+out_data: |-
+  [
+      {
+          "name": "buf_address",
+          "type": "num",
+          "val": "1998",
+          "l2l": false
+      },
+      {
+          "name": "nul",
+          "type": "char",
+          "val": 0,
+          "l2l": false
+      },
+      {
+          "name": "out_d",
+          "type": "num",
+          "val": "1",
+          "l2l": false
+      },
+      {
+          "name": "one",
+          "type": "num",
+          "val": "1",
+          "l2l": false
+      }
+  ]
+out_stdout: |
+  ============================================================
+  p y t h o n i s t D
+out_log: |
+  machine DEBUG tick:0 pc:9 ar:0 acc:0 ei:True interrupt:False 	Opcode:di Arg:null Mem[arg]:null
+  machine DEBUG tick:4 pc:10 ar:0 acc:0 ei:False interrupt:False 	Opcode:load Arg:9 Mem[arg]:{'name': 'one', 'type': <DataType.num: 'num'>, 'val': '1', 'l2l': False}
+  machine DEBUG tick:8 pc:11 ar:9 acc:1 ei:False interrupt:True 	Opcode:ei Arg:null Mem[arg]:null
+  machine DEBUG -----------Interrupt-Started-----------
+  machine DEBUG EI switched to False
+  machine DEBUG save_pc: ar:2047 mem[ar]:{'name': 'saved_pc', 'type': <DataType.num: 'num'>, 'val': '12'}
+  machine DEBUG find_isr: ar:2 mem[ar]:{'name': 'interrupt vector', 'type': <DataType.num: 'num'>, 'val': '0'}
+  machine DEBUG -----------Execute-ISR-----------
+  machine DEBUG tick:18 pc:0 ar:2 acc:0 ei:False interrupt:True 	Opcode:di Arg:null Mem[arg]:null
+  machine DEBUG tick:22 pc:1 ar:2 acc:0 ei:False interrupt:True 	Opcode:load Arg:3 Mem[arg]:{'name': 'in_d', 'type': <DataType.num: 'num'>, 'val': '0', 'l2l': False}
+  machine DEBUG CHAR_IN: p
+  machine DEBUG tick:27 pc:2 ar:0 acc:112 ei:False interrupt:True 	Opcode:push Arg:null Mem[arg]:null
+  machine DEBUG tick:30 pc:3 ar:2046 acc:112 ei:False interrupt:True 	Opcode:store Arg:4 Mem[arg]:{'name': 'buf_address', 'type': <DataType.num: 'num'>, 'val': '1998', 'l2l': False}
+  machine DEBUG tick:35 pc:4 ar:1998 acc:112 ei:False interrupt:True 	Opcode:load Arg:4 Mem[arg]:{'name': 'buf_address', 'type': <DataType.num: 'num'>, 'val': '1998', 'l2l': False}
+  machine DEBUG tick:39 pc:5 ar:4 acc:1998 ei:False interrupt:True 	Opcode:add Arg:5 Mem[arg]:{'name': 'one', 'type': <DataType.num: 'num'>, 'val': '1', 'l2l': False}
+  machine DEBUG tick:44 pc:6 ar:5 acc:1999 ei:False interrupt:True 	Opcode:store Arg:4 Mem[arg]:{'name': 'buf_address', 'type': <DataType.num: 'num'>, 'val': '1998', 'l2l': False}
+  machine DEBUG tick:48 pc:7 ar:4 acc:1999 ei:False interrupt:True 	Opcode:pop Arg:null Mem[arg]:null
+  machine DEBUG tick:52 pc:8 ar:2046 acc:112 ei:False interrupt:True 	Opcode:iret Arg:null Mem[arg]:null
+  machine DEBUG -----------Interrupt-Ended-----------
+  machine DEBUG tick:57 pc:12 ar:2047 acc:112 ei:True interrupt:False 	Opcode:di Arg:null Mem[arg]:null
+  machine DEBUG tick:61 pc:13 ar:2047 acc:112 ei:False interrupt:True 	Opcode:cmp Arg:7 Mem[arg]:{'name': 'nul', 'type': <DataType.char: 'char'>, 'val': 0, 'l2l': False}
+  machine DEBUG tick:66 pc:14 ar:7 acc:112 ei:False interrupt:True 	Opcode:jnz Arg:11 Mem[arg]:null
+  machine DEBUG tick:70 pc:11 ar:7 acc:112 ei:False interrupt:True 	Opcode:ei Arg:null Mem[arg]:null
+  machine DEBUG -----------Interrupt-Started-----------
+  machine DEBUG EI switched to False
+  machine DEBUG save_pc: ar:2047 mem[ar]:{'name': 'saved_pc', 'type': <DataType.num: 'num'>, 'val': '12'}
+  machine DEBUG find_isr: ar:2 mem[ar]:{'name': 'interrupt vector', 'type': <DataType.num: 'num'>, 'val': '0'}
+  machine DEBUG -----------Execute-ISR-----------
+  machine DEBUG tick:80 pc:0 ar:2 acc:0 ei:False interrupt:True 	Opcode:di Arg:null Mem[arg]:null
+  machine DEBUG tick:84 pc:1 ar:2 acc:0 ei:False interrupt:True 	Opcode:load Arg:3 Mem[arg]:{'name': 'in_d', 'type': <DataType.num: 'num'>, 'val': '0', 'l2l': False}
+  machine DEBUG CHAR_IN: y
+  machine DEBUG tick:89 pc:2 ar:0 acc:121 ei:False interrupt:True 	Opcode:push Arg:null Mem[arg]:null
+  machine DEBUG tick:92 pc:3 ar:2046 acc:121 ei:False interrupt:True 	Opcode:store Arg:4 Mem[arg]:{'name': 'Opcode.add operation res', 'type': <DataType.num: 'num'>, 'val': '1999'}
+  machine DEBUG tick:97 pc:4 ar:1999 acc:121 ei:False interrupt:True 	Opcode:load Arg:4 Mem[arg]:{'name': 'Opcode.add operation res', 'type': <DataType.num: 'num'>, 'val': '1999'}
+  machine DEBUG tick:101 pc:5 ar:4 acc:1999 ei:False interrupt:True 	Opcode:add Arg:5 Mem[arg]:{'name': 'one', 'type': <DataType.num: 'num'>, 'val': '1', 'l2l': False}
+  machine DEBUG tick:106 pc:6 ar:5 acc:2000 ei:False interrupt:True 	Opcode:store Arg:4 Mem[arg]:{'name': 'Opcode.add operation res', 'type': <DataType.num: 'num'>, 'val': '1999'}
+  machine DEBUG tick:110 pc:7 ar:4 acc:2000 ei:False interrupt:True 	Opcode:pop Arg:null Mem[arg]:null
+  machine DEBUG tick:114 pc:8 ar:2046 acc:121 ei:False interrupt:True 	Opcode:iret Arg:null Mem[arg]:null
+  machine DEBUG -----------Interrupt-Ended-----------
+  machine DEBUG tick:119 pc:12 ar:2047 acc:121 ei:True interrupt:False 	Opcode:di Arg:null Mem[arg]:null
+  machine DEBUG tick:123 pc:13 ar:2047 acc:121 ei:False interrupt:True 	Opcode:cmp Arg:7 Mem[arg]:{'name': 'nul', 'type': <DataType.char: 'char'>, 'val': 0, 'l2l': False}
+  machine DEBUG tick:128 pc:14 ar:7 acc:121 ei:False interrupt:True 	Opcode:jnz Arg:11 Mem[arg]:null
+  machine DEBUG tick:132 pc:11 ar:7 acc:121 ei:False interrupt:True 	Opcode:ei Arg:null Mem[arg]:null
+  machine DEBUG -----------Interrupt-Started-----------
+  machine DEBUG EI switched to False
+  machine DEBUG save_pc: ar:2047 mem[ar]:{'name': 'saved_pc', 'type': <DataType.num: 'num'>, 'val': '12'}
+  machine DEBUG find_isr: ar:2 mem[ar]:{'name': 'interrupt vector', 'type': <DataType.num: 'num'>, 'val': '0'}
+  machine DEBUG -----------Execute-ISR-----------
+  machine DEBUG tick:142 pc:0 ar:2 acc:0 ei:False interrupt:True 	Opcode:di Arg:null Mem[arg]:null
+  machine DEBUG tick:146 pc:1 ar:2 acc:0 ei:False interrupt:True 	Opcode:load Arg:3 Mem[arg]:{'name': 'in_d', 'type': <DataType.num: 'num'>, 'val': '0', 'l2l': False}
+  machine DEBUG CHAR_IN: t
+  machine DEBUG tick:151 pc:2 ar:0 acc:116 ei:False interrupt:True 	Opcode:push Arg:null Mem[arg]:null
+  machine DEBUG tick:154 pc:3 ar:2046 acc:116 ei:False interrupt:True 	Opcode:store Arg:4 Mem[arg]:{'name': 'Opcode.add operation res', 'type': <DataType.num: 'num'>, 'val': '2000'}
+  machine DEBUG tick:159 pc:4 ar:2000 acc:116 ei:False interrupt:True 	Opcode:load Arg:4 Mem[arg]:{'name': 'Opcode.add operation res', 'type': <DataType.num: 'num'>, 'val': '2000'}
+  machine DEBUG tick:163 pc:5 ar:4 acc:2000 ei:False interrupt:True 	Opcode:add Arg:5 Mem[arg]:{'name': 'one', 'type': <DataType.num: 'num'>, 'val': '1', 'l2l': False}
+  machine DEBUG tick:168 pc:6 ar:5 acc:2001 ei:False interrupt:True 	Opcode:store Arg:4 Mem[arg]:{'name': 'Opcode.add operation res', 'type': <DataType.num: 'num'>, 'val': '2000'}
+  machine DEBUG tick:172 pc:7 ar:4 acc:2001 ei:False interrupt:True 	Opcode:pop Arg:null Mem[arg]:null
+  machine DEBUG tick:176 pc:8 ar:2046 acc:116 ei:False interrupt:True 	Opcode:iret Arg:null Mem[arg]:null
+  machine DEBUG -----------Interrupt-Ended-----------
+  machine DEBUG tick:181 pc:12 ar:2047 acc:116 ei:True interrupt:False 	Opcode:di Arg:null Mem[arg]:null
+  machine DEBUG tick:185 pc:13 ar:2047 acc:116 ei:False interrupt:True 	Opcode:cmp Arg:7 Mem[arg]:{'name': 'nul', 'type': <DataType.char: 'char'>, 'val': 0, 'l2l': False}
+  machine DEBUG tick:190 pc:14 ar:7 acc:116 ei:False interrupt:True 	Opcode:jnz Arg:11 Mem[arg]:null
+  machine DEBUG tick:194 pc:11 ar:7 acc:116 ei:False interrupt:True 	Opcode:ei Arg:null Mem[arg]:null
+  machine DEBUG -----------Interrupt-Started-----------
+  machine DEBUG EI switched to False
+  machine DEBUG save_pc: ar:2047 mem[ar]:{'name': 'saved_pc', 'type': <DataType.num: 'num'>, 'val': '12'}
+  machine DEBUG find_isr: ar:2 mem[ar]:{'name': 'interrupt vector', 'type': <DataType.num: 'num'>, 'val': '0'}
+  machine DEBUG -----------Execute-ISR-----------
+  machine DEBUG tick:204 pc:0 ar:2 acc:0 ei:False interrupt:True 	Opcode:di Arg:null Mem[arg]:null
+  machine DEBUG tick:208 pc:1 ar:2 acc:0 ei:False interrupt:True 	Opcode:load Arg:3 Mem[arg]:{'name': 'in_d', 'type': <DataType.num: 'num'>, 'val': '0', 'l2l': False}
+  machine DEBUG CHAR_IN: h
+  machine DEBUG tick:213 pc:2 ar:0 acc:104 ei:False interrupt:True 	Opcode:push Arg:null Mem[arg]:null
+  machine DEBUG tick:216 pc:3 ar:2046 acc:104 ei:False interrupt:True 	Opcode:store Arg:4 Mem[arg]:{'name': 'Opcode.add operation res', 'type': <DataType.num: 'num'>, 'val': '2001'}
+  machine DEBUG tick:221 pc:4 ar:2001 acc:104 ei:False interrupt:True 	Opcode:load Arg:4 Mem[arg]:{'name': 'Opcode.add operation res', 'type': <DataType.num: 'num'>, 'val': '2001'}
+  machine DEBUG tick:225 pc:5 ar:4 acc:2001 ei:False interrupt:True 	Opcode:add Arg:5 Mem[arg]:{'name': 'one', 'type': <DataType.num: 'num'>, 'val': '1', 'l2l': False}
+  machine DEBUG tick:230 pc:6 ar:5 acc:2002 ei:False interrupt:True 	Opcode:store Arg:4 Mem[arg]:{'name': 'Opcode.add operation res', 'type': <DataType.num: 'num'>, 'val': '2001'}
+  machine DEBUG tick:234 pc:7 ar:4 acc:2002 ei:False interrupt:True 	Opcode:pop Arg:null Mem[arg]:null
+  machine DEBUG tick:238 pc:8 ar:2046 acc:104 ei:False interrupt:True 	Opcode:iret Arg:null Mem[arg]:null
+  machine DEBUG -----------Interrupt-Ended-----------
+  machine DEBUG tick:243 pc:12 ar:2047 acc:104 ei:True interrupt:False 	Opcode:di Arg:null Mem[arg]:null
+  machine DEBUG tick:247 pc:13 ar:2047 acc:104 ei:False interrupt:True 	Opcode:cmp Arg:7 Mem[arg]:{'name': 'nul', 'type': <DataType.char: 'char'>, 'val': 0, 'l2l': False}
+  machine DEBUG tick:252 pc:14 ar:7 acc:104 ei:False interrupt:True 	Opcode:jnz Arg:11 Mem[arg]:null
+  machine DEBUG tick:256 pc:11 ar:7 acc:104 ei:False interrupt:True 	Opcode:ei Arg:null Mem[arg]:null
+  machine DEBUG -----------Interrupt-Started-----------
+  machine DEBUG EI switched to False
+  machine DEBUG save_pc: ar:2047 mem[ar]:{'name': 'saved_pc', 'type': <DataType.num: 'num'>, 'val': '12'}
+  machine DEBUG find_isr: ar:2 mem[ar]:{'name': 'interrupt vector', 'type': <DataType.num: 'num'>, 'val': '0'}
+  machine DEBUG -----------Execute-ISR-----------
+  machine DEBUG tick:266 pc:0 ar:2 acc:0 ei:False interrupt:True 	Opcode:di Arg:null Mem[arg]:null
+  machine DEBUG tick:270 pc:1 ar:2 acc:0 ei:False interrupt:True 	Opcode:load Arg:3 Mem[arg]:{'name': 'in_d', 'type': <DataType.num: 'num'>, 'val': '0', 'l2l': False}
+  machine DEBUG CHAR_IN: o
+  machine DEBUG tick:275 pc:2 ar:0 acc:111 ei:False interrupt:True 	Opcode:push Arg:null Mem[arg]:null
+  machine DEBUG tick:278 pc:3 ar:2046 acc:111 ei:False interrupt:True 	Opcode:store Arg:4 Mem[arg]:{'name': 'Opcode.add operation res', 'type': <DataType.num: 'num'>, 'val': '2002'}
+  machine DEBUG tick:283 pc:4 ar:2002 acc:111 ei:False interrupt:True 	Opcode:load Arg:4 Mem[arg]:{'name': 'Opcode.add operation res', 'type': <DataType.num: 'num'>, 'val': '2002'}
+  machine DEBUG tick:287 pc:5 ar:4 acc:2002 ei:False interrupt:True 	Opcode:add Arg:5 Mem[arg]:{'name': 'one', 'type': <DataType.num: 'num'>, 'val': '1', 'l2l': False}
+  machine DEBUG tick:292 pc:6 ar:5 acc:2003 ei:False interrupt:True 	Opcode:store Arg:4 Mem[arg]:{'name': 'Opcode.add operation res', 'type': <DataType.num: 'num'>, 'val': '2002'}
+  machine DEBUG tick:296 pc:7 ar:4 acc:2003 ei:False interrupt:True 	Opcode:pop Arg:null Mem[arg]:null
+  machine DEBUG tick:300 pc:8 ar:2046 acc:111 ei:False interrupt:True 	Opcode:iret Arg:null Mem[arg]:null
+  machine DEBUG -----------Interrupt-Ended-----------
+  machine DEBUG tick:305 pc:12 ar:2047 acc:111 ei:True interrupt:False 	Opcode:di Arg:null Mem[arg]:null
+  machine DEBUG tick:309 pc:13 ar:2047 acc:111 ei:False interrupt:True 	Opcode:cmp Arg:7 Mem[arg]:{'name': 'nul', 'type': <DataType.char: 'char'>, 'val': 0, 'l2l': False}
+  machine DEBUG tick:314 pc:14 ar:7 acc:111 ei:False interrupt:True 	Opcode:jnz Arg:11 Mem[arg]:null
+  machine DEBUG tick:318 pc:11 ar:7 acc:111 ei:False interrupt:True 	Opcode:ei Arg:null Mem[arg]:null
+  machine DEBUG -----------Interrupt-Started-----------
+  machine DEBUG EI switched to False
+  machine DEBUG save_pc: ar:2047 mem[ar]:{'name': 'saved_pc', 'type': <DataType.num: 'num'>, 'val': '12'}
+  machine DEBUG find_isr: ar:2 mem[ar]:{'name': 'interrupt vector', 'type': <DataType.num: 'num'>, 'val': '0'}
+  machine DEBUG -----------Execute-ISR-----------
+  machine DEBUG tick:328 pc:0 ar:2 acc:0 ei:False interrupt:True 	Opcode:di Arg:null Mem[arg]:null
+  machine DEBUG tick:332 pc:1 ar:2 acc:0 ei:False interrupt:True 	Opcode:load Arg:3 Mem[arg]:{'name': 'in_d', 'type': <DataType.num: 'num'>, 'val': '0', 'l2l': False}
+  machine DEBUG CHAR_IN: n
+  machine DEBUG tick:337 pc:2 ar:0 acc:110 ei:False interrupt:True 	Opcode:push Arg:null Mem[arg]:null
+  machine DEBUG tick:340 pc:3 ar:2046 acc:110 ei:False interrupt:True 	Opcode:store Arg:4 Mem[arg]:{'name': 'Opcode.add operation res', 'type': <DataType.num: 'num'>, 'val': '2003'}
+  machine DEBUG tick:345 pc:4 ar:2003 acc:110 ei:False interrupt:True 	Opcode:load Arg:4 Mem[arg]:{'name': 'Opcode.add operation res', 'type': <DataType.num: 'num'>, 'val': '2003'}
+  machine DEBUG tick:349 pc:5 ar:4 acc:2003 ei:False interrupt:True 	Opcode:add Arg:5 Mem[arg]:{'name': 'one', 'type': <DataType.num: 'num'>, 'val': '1', 'l2l': False}
+  machine DEBUG tick:354 pc:6 ar:5 acc:2004 ei:False interrupt:True 	Opcode:store Arg:4 Mem[arg]:{'name': 'Opcode.add operation res', 'type': <DataType.num: 'num'>, 'val': '2003'}
+  machine DEBUG tick:358 pc:7 ar:4 acc:2004 ei:False interrupt:True 	Opcode:pop Arg:null Mem[arg]:null
+  machine DEBUG tick:362 pc:8 ar:2046 acc:110 ei:False interrupt:True 	Opcode:iret Arg:null Mem[arg]:null
+  machine DEBUG -----------Interrupt-Ended-----------
+  machine DEBUG tick:367 pc:12 ar:2047 acc:110 ei:True interrupt:False 	Opcode:di Arg:null Mem[arg]:null
+  machine DEBUG tick:371 pc:13 ar:2047 acc:110 ei:False interrupt:True 	Opcode:cmp Arg:7 Mem[arg]:{'name': 'nul', 'type': <DataType.char: 'char'>, 'val': 0, 'l2l': False}
+  machine DEBUG tick:376 pc:14 ar:7 acc:110 ei:False interrupt:True 	Opcode:jnz Arg:11 Mem[arg]:null
+  machine DEBUG tick:380 pc:11 ar:7 acc:110 ei:False interrupt:True 	Opcode:ei Arg:null Mem[arg]:null
+  machine DEBUG -----------Interrupt-Started-----------
+  machine DEBUG EI switched to False
+  machine DEBUG save_pc: ar:2047 mem[ar]:{'name': 'saved_pc', 'type': <DataType.num: 'num'>, 'val': '12'}
+  machine DEBUG find_isr: ar:2 mem[ar]:{'name': 'interrupt vector', 'type': <DataType.num: 'num'>, 'val': '0'}
+  machine DEBUG -----------Execute-ISR-----------
+  machine DEBUG tick:390 pc:0 ar:2 acc:0 ei:False interrupt:True 	Opcode:di Arg:null Mem[arg]:null
+  machine DEBUG tick:394 pc:1 ar:2 acc:0 ei:False interrupt:True 	Opcode:load Arg:3 Mem[arg]:{'name': 'in_d', 'type': <DataType.num: 'num'>, 'val': '0', 'l2l': False}
+  machine DEBUG CHAR_IN: i
+  machine DEBUG tick:399 pc:2 ar:0 acc:105 ei:False interrupt:True 	Opcode:push Arg:null Mem[arg]:null
+  machine DEBUG tick:402 pc:3 ar:2046 acc:105 ei:False interrupt:True 	Opcode:store Arg:4 Mem[arg]:{'name': 'Opcode.add operation res', 'type': <DataType.num: 'num'>, 'val': '2004'}
+  machine DEBUG tick:407 pc:4 ar:2004 acc:105 ei:False interrupt:True 	Opcode:load Arg:4 Mem[arg]:{'name': 'Opcode.add operation res', 'type': <DataType.num: 'num'>, 'val': '2004'}
+  machine DEBUG tick:411 pc:5 ar:4 acc:2004 ei:False interrupt:True 	Opcode:add Arg:5 Mem[arg]:{'name': 'one', 'type': <DataType.num: 'num'>, 'val': '1', 'l2l': False}
+  machine DEBUG tick:416 pc:6 ar:5 acc:2005 ei:False interrupt:True 	Opcode:store Arg:4 Mem[arg]:{'name': 'Opcode.add operation res', 'type': <DataType.num: 'num'>, 'val': '2004'}
+  machine DEBUG tick:420 pc:7 ar:4 acc:2005 ei:False interrupt:True 	Opcode:pop Arg:null Mem[arg]:null
+  machine DEBUG tick:424 pc:8 ar:2046 acc:105 ei:False interrupt:True 	Opcode:iret Arg:null Mem[arg]:null
+  machine DEBUG -----------Interrupt-Ended-----------
+  machine DEBUG tick:429 pc:12 ar:2047 acc:105 ei:True interrupt:False 	Opcode:di Arg:null Mem[arg]:null
+  machine DEBUG tick:433 pc:13 ar:2047 acc:105 ei:False interrupt:True 	Opcode:cmp Arg:7 Mem[arg]:{'name': 'nul', 'type': <DataType.char: 'char'>, 'val': 0, 'l2l': False}
+  machine DEBUG tick:438 pc:14 ar:7 acc:105 ei:False interrupt:True 	Opcode:jnz Arg:11 Mem[arg]:null
+  machine DEBUG tick:442 pc:11 ar:7 acc:105 ei:False interrupt:True 	Opcode:ei Arg:null Mem[arg]:null
+  machine DEBUG -----------Interrupt-Started-----------
+  machine DEBUG EI switched to False
+  machine DEBUG save_pc: ar:2047 mem[ar]:{'name': 'saved_pc', 'type': <DataType.num: 'num'>, 'val': '12'}
+  machine DEBUG find_isr: ar:2 mem[ar]:{'name': 'interrupt vector', 'type': <DataType.num: 'num'>, 'val': '0'}
+  machine DEBUG -----------Execute-ISR-----------
+  machine DEBUG tick:452 pc:0 ar:2 acc:0 ei:False interrupt:True 	Opcode:di Arg:null Mem[arg]:null
+  machine DEBUG tick:456 pc:1 ar:2 acc:0 ei:False interrupt:True 	Opcode:load Arg:3 Mem[arg]:{'name': 'in_d', 'type': <DataType.num: 'num'>, 'val': '0', 'l2l': False}
+  machine DEBUG CHAR_IN: s
+  machine DEBUG tick:461 pc:2 ar:0 acc:115 ei:False interrupt:True 	Opcode:push Arg:null Mem[arg]:null
+  machine DEBUG tick:464 pc:3 ar:2046 acc:115 ei:False interrupt:True 	Opcode:store Arg:4 Mem[arg]:{'name': 'Opcode.add operation res', 'type': <DataType.num: 'num'>, 'val': '2005'}
+  machine DEBUG tick:469 pc:4 ar:2005 acc:115 ei:False interrupt:True 	Opcode:load Arg:4 Mem[arg]:{'name': 'Opcode.add operation res', 'type': <DataType.num: 'num'>, 'val': '2005'}
+  machine DEBUG tick:473 pc:5 ar:4 acc:2005 ei:False interrupt:True 	Opcode:add Arg:5 Mem[arg]:{'name': 'one', 'type': <DataType.num: 'num'>, 'val': '1', 'l2l': False}
+  machine DEBUG tick:478 pc:6 ar:5 acc:2006 ei:False interrupt:True 	Opcode:store Arg:4 Mem[arg]:{'name': 'Opcode.add operation res', 'type': <DataType.num: 'num'>, 'val': '2005'}
+  machine DEBUG tick:482 pc:7 ar:4 acc:2006 ei:False interrupt:True 	Opcode:pop Arg:null Mem[arg]:null
+  machine DEBUG tick:486 pc:8 ar:2046 acc:115 ei:False interrupt:True 	Opcode:iret Arg:null Mem[arg]:null
+  machine DEBUG -----------Interrupt-Ended-----------
+  machine DEBUG tick:491 pc:12 ar:2047 acc:115 ei:True interrupt:False 	Opcode:di Arg:null Mem[arg]:null
+  machine DEBUG tick:495 pc:13 ar:2047 acc:115 ei:False interrupt:True 	Opcode:cmp Arg:7 Mem[arg]:{'name': 'nul', 'type': <DataType.char: 'char'>, 'val': 0, 'l2l': False}
+  machine DEBUG tick:500 pc:14 ar:7 acc:115 ei:False interrupt:True 	Opcode:jnz Arg:11 Mem[arg]:null
+  machine DEBUG tick:504 pc:11 ar:7 acc:115 ei:False interrupt:True 	Opcode:ei Arg:null Mem[arg]:null
+  machine DEBUG -----------Interrupt-Started-----------
+  machine DEBUG EI switched to False
+  machine DEBUG save_pc: ar:2047 mem[ar]:{'name': 'saved_pc', 'type': <DataType.num: 'num'>, 'val': '12'}
+  machine DEBUG find_isr: ar:2 mem[ar]:{'name': 'interrupt vector', 'type': <DataType.num: 'num'>, 'val': '0'}
+  machine DEBUG -----------Execute-ISR-----------
+  machine DEBUG tick:514 pc:0 ar:2 acc:0 ei:False interrupt:True 	Opcode:di Arg:null Mem[arg]:null
+  machine DEBUG tick:518 pc:1 ar:2 acc:0 ei:False interrupt:True 	Opcode:load Arg:3 Mem[arg]:{'name': 'in_d', 'type': <DataType.num: 'num'>, 'val': '0', 'l2l': False}
+  machine DEBUG CHAR_IN: t
+  machine DEBUG tick:523 pc:2 ar:0 acc:116 ei:False interrupt:True 	Opcode:push Arg:null Mem[arg]:null
+  machine DEBUG tick:526 pc:3 ar:2046 acc:116 ei:False interrupt:True 	Opcode:store Arg:4 Mem[arg]:{'name': 'Opcode.add operation res', 'type': <DataType.num: 'num'>, 'val': '2006'}
+  machine DEBUG tick:531 pc:4 ar:2006 acc:116 ei:False interrupt:True 	Opcode:load Arg:4 Mem[arg]:{'name': 'Opcode.add operation res', 'type': <DataType.num: 'num'>, 'val': '2006'}
+  machine DEBUG tick:535 pc:5 ar:4 acc:2006 ei:False interrupt:True 	Opcode:add Arg:5 Mem[arg]:{'name': 'one', 'type': <DataType.num: 'num'>, 'val': '1', 'l2l': False}
+  machine DEBUG tick:540 pc:6 ar:5 acc:2007 ei:False interrupt:True 	Opcode:store Arg:4 Mem[arg]:{'name': 'Opcode.add operation res', 'type': <DataType.num: 'num'>, 'val': '2006'}
+  machine DEBUG tick:544 pc:7 ar:4 acc:2007 ei:False interrupt:True 	Opcode:pop Arg:null Mem[arg]:null
+  machine DEBUG tick:548 pc:8 ar:2046 acc:116 ei:False interrupt:True 	Opcode:iret Arg:null Mem[arg]:null
+  machine DEBUG -----------Interrupt-Ended-----------
+  machine DEBUG tick:553 pc:12 ar:2047 acc:116 ei:True interrupt:False 	Opcode:di Arg:null Mem[arg]:null
+  machine DEBUG tick:557 pc:13 ar:2047 acc:116 ei:False interrupt:True 	Opcode:cmp Arg:7 Mem[arg]:{'name': 'nul', 'type': <DataType.char: 'char'>, 'val': 0, 'l2l': False}
+  machine DEBUG tick:562 pc:14 ar:7 acc:116 ei:False interrupt:True 	Opcode:jnz Arg:11 Mem[arg]:null
+  machine DEBUG tick:566 pc:11 ar:7 acc:116 ei:False interrupt:True 	Opcode:ei Arg:null Mem[arg]:null
+  machine DEBUG -----------Interrupt-Started-----------
+  machine DEBUG EI switched to False
+  machine DEBUG save_pc: ar:2047 mem[ar]:{'name': 'saved_pc', 'type': <DataType.num: 'num'>, 'val': '12'}
+  machine DEBUG find_isr: ar:2 mem[ar]:{'name': 'interrupt vector', 'type': <DataType.num: 'num'>, 'val': '0'}
+  machine DEBUG -----------Execute-ISR-----------
+  machine DEBUG tick:576 pc:0 ar:2 acc:0 ei:False interrupt:True 	Opcode:di Arg:null Mem[arg]:null
+  machine DEBUG tick:580 pc:1 ar:2 acc:0 ei:False interrupt:True 	Opcode:load Arg:3 Mem[arg]:{'name': 'in_d', 'type': <DataType.num: 'num'>, 'val': '0', 'l2l': False}
+  machine DEBUG CHAR_IN: D
+  machine DEBUG tick:585 pc:2 ar:0 acc:68 ei:False interrupt:True 	Opcode:push Arg:null Mem[arg]:null
+  machine DEBUG tick:588 pc:3 ar:2046 acc:68 ei:False interrupt:True 	Opcode:store Arg:4 Mem[arg]:{'name': 'Opcode.add operation res', 'type': <DataType.num: 'num'>, 'val': '2007'}
+  machine DEBUG tick:593 pc:4 ar:2007 acc:68 ei:False interrupt:True 	Opcode:load Arg:4 Mem[arg]:{'name': 'Opcode.add operation res', 'type': <DataType.num: 'num'>, 'val': '2007'}
+  machine DEBUG tick:597 pc:5 ar:4 acc:2007 ei:False interrupt:True 	Opcode:add Arg:5 Mem[arg]:{'name': 'one', 'type': <DataType.num: 'num'>, 'val': '1', 'l2l': False}
+  machine DEBUG tick:602 pc:6 ar:5 acc:2008 ei:False interrupt:True 	Opcode:store Arg:4 Mem[arg]:{'name': 'Opcode.add operation res', 'type': <DataType.num: 'num'>, 'val': '2007'}
+  machine DEBUG tick:606 pc:7 ar:4 acc:2008 ei:False interrupt:True 	Opcode:pop Arg:null Mem[arg]:null
+  machine DEBUG tick:610 pc:8 ar:2046 acc:68 ei:False interrupt:True 	Opcode:iret Arg:null Mem[arg]:null
+  machine DEBUG -----------Interrupt-Ended-----------
+  machine DEBUG tick:615 pc:12 ar:2047 acc:68 ei:True interrupt:False 	Opcode:di Arg:null Mem[arg]:null
+  machine DEBUG tick:619 pc:13 ar:2047 acc:68 ei:False interrupt:True 	Opcode:cmp Arg:7 Mem[arg]:{'name': 'nul', 'type': <DataType.char: 'char'>, 'val': 0, 'l2l': False}
+  machine DEBUG tick:624 pc:14 ar:7 acc:68 ei:False interrupt:True 	Opcode:jnz Arg:11 Mem[arg]:null
+  machine DEBUG tick:628 pc:11 ar:7 acc:68 ei:False interrupt:True 	Opcode:ei Arg:null Mem[arg]:null
+  machine DEBUG -----------Interrupt-Started-----------
+  machine DEBUG EI switched to False
+  machine DEBUG save_pc: ar:2047 mem[ar]:{'name': 'saved_pc', 'type': <DataType.num: 'num'>, 'val': '12'}
+  machine DEBUG find_isr: ar:2 mem[ar]:{'name': 'interrupt vector', 'type': <DataType.num: 'num'>, 'val': '0'}
+  machine DEBUG -----------Execute-ISR-----------
+  machine DEBUG tick:638 pc:0 ar:2 acc:0 ei:False interrupt:True 	Opcode:di Arg:null Mem[arg]:null
+  machine DEBUG tick:642 pc:1 ar:2 acc:0 ei:False interrupt:True 	Opcode:load Arg:3 Mem[arg]:{'name': 'in_d', 'type': <DataType.num: 'num'>, 'val': '0', 'l2l': False}
+  machine DEBUG CHAR_IN: null
+  machine DEBUG tick:647 pc:2 ar:0 acc:0 ei:False interrupt:True 	Opcode:push Arg:null Mem[arg]:null
+  machine DEBUG tick:650 pc:3 ar:2046 acc:0 ei:False interrupt:True 	Opcode:store Arg:4 Mem[arg]:{'name': 'Opcode.add operation res', 'type': <DataType.num: 'num'>, 'val': '2008'}
+  machine DEBUG tick:655 pc:4 ar:2008 acc:0 ei:False interrupt:True 	Opcode:load Arg:4 Mem[arg]:{'name': 'Opcode.add operation res', 'type': <DataType.num: 'num'>, 'val': '2008'}
+  machine DEBUG tick:659 pc:5 ar:4 acc:2008 ei:False interrupt:True 	Opcode:add Arg:5 Mem[arg]:{'name': 'one', 'type': <DataType.num: 'num'>, 'val': '1', 'l2l': False}
+  machine DEBUG tick:664 pc:6 ar:5 acc:2009 ei:False interrupt:True 	Opcode:store Arg:4 Mem[arg]:{'name': 'Opcode.add operation res', 'type': <DataType.num: 'num'>, 'val': '2008'}
+  machine DEBUG tick:668 pc:7 ar:4 acc:2009 ei:False interrupt:True 	Opcode:pop Arg:null Mem[arg]:null
+  machine DEBUG tick:672 pc:8 ar:2046 acc:0 ei:False interrupt:True 	Opcode:iret Arg:null Mem[arg]:null
+  machine DEBUG -----------Interrupt-Ended-----------
+  machine DEBUG tick:677 pc:12 ar:2047 acc:0 ei:True interrupt:False 	Opcode:di Arg:null Mem[arg]:null
+  machine DEBUG tick:681 pc:13 ar:2047 acc:0 ei:False interrupt:False 	Opcode:cmp Arg:7 Mem[arg]:{'name': 'nul', 'type': <DataType.char: 'char'>, 'val': 0, 'l2l': False}
+  machine DEBUG tick:686 pc:14 ar:7 acc:0 ei:False interrupt:False 	Opcode:jnz Arg:11 Mem[arg]:null
+  machine DEBUG tick:690 pc:15 ar:7 acc:0 ei:False interrupt:False 	Opcode:load Arg:6 Mem[arg]:{'name': 'buf_address', 'type': <DataType.num: 'num'>, 'val': '1998', 'l2l': False}
+  machine DEBUG tick:695 pc:16 ar:1998 acc:112 ei:False interrupt:False 	Opcode:cmp Arg:7 Mem[arg]:{'name': 'nul', 'type': <DataType.char: 'char'>, 'val': 0, 'l2l': False}
+  machine DEBUG tick:700 pc:17 ar:7 acc:112 ei:False interrupt:False 	Opcode:jz Arg:23 Mem[arg]:null
+  machine DEBUG tick:704 pc:18 ar:7 acc:112 ei:False interrupt:False 	Opcode:store Arg:8 Mem[arg]:{'name': 'out_d', 'type': <DataType.num: 'num'>, 'val': '1', 'l2l': False}
+  machine DEBUG CHAR_OUT: p
+  machine DEBUG tick:709 pc:19 ar:1 acc:112 ei:False interrupt:False 	Opcode:load Arg:6 Mem[arg]:{'name': 'buf_address', 'type': <DataType.num: 'num'>, 'val': '1998', 'l2l': False}
+  machine DEBUG tick:713 pc:20 ar:6 acc:1998 ei:False interrupt:False 	Opcode:add Arg:9 Mem[arg]:{'name': 'one', 'type': <DataType.num: 'num'>, 'val': '1', 'l2l': False}
+  machine DEBUG tick:718 pc:21 ar:9 acc:1999 ei:False interrupt:False 	Opcode:store Arg:6 Mem[arg]:{'name': 'buf_address', 'type': <DataType.num: 'num'>, 'val': '1998', 'l2l': False}
+  machine DEBUG tick:722 pc:22 ar:6 acc:1999 ei:False interrupt:False 	Opcode:jmp Arg:15 Mem[arg]:null
+  machine DEBUG tick:725 pc:15 ar:6 acc:1999 ei:False interrupt:False 	Opcode:load Arg:6 Mem[arg]:{'name': 'Opcode.add operation res', 'type': <DataType.num: 'num'>, 'val': '1999'}
+  machine DEBUG tick:730 pc:16 ar:1999 acc:121 ei:False interrupt:False 	Opcode:cmp Arg:7 Mem[arg]:{'name': 'nul', 'type': <DataType.char: 'char'>, 'val': 0, 'l2l': False}
+  machine DEBUG tick:735 pc:17 ar:7 acc:121 ei:False interrupt:False 	Opcode:jz Arg:23 Mem[arg]:null
+  machine DEBUG tick:739 pc:18 ar:7 acc:121 ei:False interrupt:False 	Opcode:store Arg:8 Mem[arg]:{'name': 'out_d', 'type': <DataType.num: 'num'>, 'val': '1', 'l2l': False}
+  machine DEBUG CHAR_OUT: y
+  machine DEBUG tick:744 pc:19 ar:1 acc:121 ei:False interrupt:False 	Opcode:load Arg:6 Mem[arg]:{'name': 'Opcode.add operation res', 'type': <DataType.num: 'num'>, 'val': '1999'}
+  machine DEBUG tick:748 pc:20 ar:6 acc:1999 ei:False interrupt:False 	Opcode:add Arg:9 Mem[arg]:{'name': 'one', 'type': <DataType.num: 'num'>, 'val': '1', 'l2l': False}
+  machine DEBUG tick:753 pc:21 ar:9 acc:2000 ei:False interrupt:False 	Opcode:store Arg:6 Mem[arg]:{'name': 'Opcode.add operation res', 'type': <DataType.num: 'num'>, 'val': '1999'}
+  machine DEBUG tick:757 pc:22 ar:6 acc:2000 ei:False interrupt:False 	Opcode:jmp Arg:15 Mem[arg]:null
+  machine DEBUG tick:760 pc:15 ar:6 acc:2000 ei:False interrupt:False 	Opcode:load Arg:6 Mem[arg]:{'name': 'Opcode.add operation res', 'type': <DataType.num: 'num'>, 'val': '2000'}
+  machine DEBUG tick:765 pc:16 ar:2000 acc:116 ei:False interrupt:False 	Opcode:cmp Arg:7 Mem[arg]:{'name': 'nul', 'type': <DataType.char: 'char'>, 'val': 0, 'l2l': False}
+  machine DEBUG tick:770 pc:17 ar:7 acc:116 ei:False interrupt:False 	Opcode:jz Arg:23 Mem[arg]:null
+  machine DEBUG tick:774 pc:18 ar:7 acc:116 ei:False interrupt:False 	Opcode:store Arg:8 Mem[arg]:{'name': 'out_d', 'type': <DataType.num: 'num'>, 'val': '1', 'l2l': False}
+  machine DEBUG CHAR_OUT: t
+  machine DEBUG tick:779 pc:19 ar:1 acc:116 ei:False interrupt:False 	Opcode:load Arg:6 Mem[arg]:{'name': 'Opcode.add operation res', 'type': <DataType.num: 'num'>, 'val': '2000'}
+  machine DEBUG tick:783 pc:20 ar:6 acc:2000 ei:False interrupt:False 	Opcode:add Arg:9 Mem[arg]:{'name': 'one', 'type': <DataType.num: 'num'>, 'val': '1', 'l2l': False}
+  machine DEBUG tick:788 pc:21 ar:9 acc:2001 ei:False interrupt:False 	Opcode:store Arg:6 Mem[arg]:{'name': 'Opcode.add operation res', 'type': <DataType.num: 'num'>, 'val': '2000'}
+  machine DEBUG tick:792 pc:22 ar:6 acc:2001 ei:False interrupt:False 	Opcode:jmp Arg:15 Mem[arg]:null
+  machine DEBUG tick:795 pc:15 ar:6 acc:2001 ei:False interrupt:False 	Opcode:load Arg:6 Mem[arg]:{'name': 'Opcode.add operation res', 'type': <DataType.num: 'num'>, 'val': '2001'}
+  machine DEBUG tick:800 pc:16 ar:2001 acc:104 ei:False interrupt:False 	Opcode:cmp Arg:7 Mem[arg]:{'name': 'nul', 'type': <DataType.char: 'char'>, 'val': 0, 'l2l': False}
+  machine DEBUG tick:805 pc:17 ar:7 acc:104 ei:False interrupt:False 	Opcode:jz Arg:23 Mem[arg]:null
+  machine DEBUG tick:809 pc:18 ar:7 acc:104 ei:False interrupt:False 	Opcode:store Arg:8 Mem[arg]:{'name': 'out_d', 'type': <DataType.num: 'num'>, 'val': '1', 'l2l': False}
+  machine DEBUG CHAR_OUT: h
+  machine DEBUG tick:814 pc:19 ar:1 acc:104 ei:False interrupt:False 	Opcode:load Arg:6 Mem[arg]:{'name': 'Opcode.add operation res', 'type': <DataType.num: 'num'>, 'val': '2001'}
+  machine DEBUG tick:818 pc:20 ar:6 acc:2001 ei:False interrupt:False 	Opcode:add Arg:9 Mem[arg]:{'name': 'one', 'type': <DataType.num: 'num'>, 'val': '1', 'l2l': False}
+  machine DEBUG tick:823 pc:21 ar:9 acc:2002 ei:False interrupt:False 	Opcode:store Arg:6 Mem[arg]:{'name': 'Opcode.add operation res', 'type': <DataType.num: 'num'>, 'val': '2001'}
+  machine DEBUG tick:827 pc:22 ar:6 acc:2002 ei:False interrupt:False 	Opcode:jmp Arg:15 Mem[arg]:null
+  machine DEBUG tick:830 pc:15 ar:6 acc:2002 ei:False interrupt:False 	Opcode:load Arg:6 Mem[arg]:{'name': 'Opcode.add operation res', 'type': <DataType.num: 'num'>, 'val': '2002'}
+  machine DEBUG tick:835 pc:16 ar:2002 acc:111 ei:False interrupt:False 	Opcode:cmp Arg:7 Mem[arg]:{'name': 'nul', 'type': <DataType.char: 'char'>, 'val': 0, 'l2l': False}
+  machine DEBUG tick:840 pc:17 ar:7 acc:111 ei:False interrupt:False 	Opcode:jz Arg:23 Mem[arg]:null
+  machine DEBUG tick:844 pc:18 ar:7 acc:111 ei:False interrupt:False 	Opcode:store Arg:8 Mem[arg]:{'name': 'out_d', 'type': <DataType.num: 'num'>, 'val': '1', 'l2l': False}
+  machine DEBUG CHAR_OUT: o
+  machine DEBUG tick:849 pc:19 ar:1 acc:111 ei:False interrupt:False 	Opcode:load Arg:6 Mem[arg]:{'name': 'Opcode.add operation res', 'type': <DataType.num: 'num'>, 'val': '2002'}
+  machine DEBUG tick:853 pc:20 ar:6 acc:2002 ei:False interrupt:False 	Opcode:add Arg:9 Mem[arg]:{'name': 'one', 'type': <DataType.num: 'num'>, 'val': '1', 'l2l': False}
+  machine DEBUG tick:858 pc:21 ar:9 acc:2003 ei:False interrupt:False 	Opcode:store Arg:6 Mem[arg]:{'name': 'Opcode.add operation res', 'type': <DataType.num: 'num'>, 'val': '2002'}
+  machine DEBUG tick:862 pc:22 ar:6 acc:2003 ei:False interrupt:False 	Opcode:jmp Arg:15 Mem[arg]:null
+  machine DEBUG tick:865 pc:15 ar:6 acc:2003 ei:False interrupt:False 	Opcode:load Arg:6 Mem[arg]:{'name': 'Opcode.add operation res', 'type': <DataType.num: 'num'>, 'val': '2003'}
+  machine DEBUG tick:870 pc:16 ar:2003 acc:110 ei:False interrupt:False 	Opcode:cmp Arg:7 Mem[arg]:{'name': 'nul', 'type': <DataType.char: 'char'>, 'val': 0, 'l2l': False}
+  machine DEBUG tick:875 pc:17 ar:7 acc:110 ei:False interrupt:False 	Opcode:jz Arg:23 Mem[arg]:null
+  machine DEBUG tick:879 pc:18 ar:7 acc:110 ei:False interrupt:False 	Opcode:store Arg:8 Mem[arg]:{'name': 'out_d', 'type': <DataType.num: 'num'>, 'val': '1', 'l2l': False}
+  machine DEBUG CHAR_OUT: n
+  machine DEBUG tick:884 pc:19 ar:1 acc:110 ei:False interrupt:False 	Opcode:load Arg:6 Mem[arg]:{'name': 'Opcode.add operation res', 'type': <DataType.num: 'num'>, 'val': '2003'}
+  machine DEBUG tick:888 pc:20 ar:6 acc:2003 ei:False interrupt:False 	Opcode:add Arg:9 Mem[arg]:{'name': 'one', 'type': <DataType.num: 'num'>, 'val': '1', 'l2l': False}
+  machine DEBUG tick:893 pc:21 ar:9 acc:2004 ei:False interrupt:False 	Opcode:store Arg:6 Mem[arg]:{'name': 'Opcode.add operation res', 'type': <DataType.num: 'num'>, 'val': '2003'}
+  machine DEBUG tick:897 pc:22 ar:6 acc:2004 ei:False interrupt:False 	Opcode:jmp Arg:15 Mem[arg]:null
+  machine DEBUG tick:900 pc:15 ar:6 acc:2004 ei:False interrupt:False 	Opcode:load Arg:6 Mem[arg]:{'name': 'Opcode.add operation res', 'type': <DataType.num: 'num'>, 'val': '2004'}
+  machine DEBUG tick:905 pc:16 ar:2004 acc:105 ei:False interrupt:False 	Opcode:cmp Arg:7 Mem[arg]:{'name': 'nul', 'type': <DataType.char: 'char'>, 'val': 0, 'l2l': False}
+  machine DEBUG tick:910 pc:17 ar:7 acc:105 ei:False interrupt:False 	Opcode:jz Arg:23 Mem[arg]:null
+  machine DEBUG tick:914 pc:18 ar:7 acc:105 ei:False interrupt:False 	Opcode:store Arg:8 Mem[arg]:{'name': 'out_d', 'type': <DataType.num: 'num'>, 'val': '1', 'l2l': False}
+  machine DEBUG CHAR_OUT: i
+  machine DEBUG tick:919 pc:19 ar:1 acc:105 ei:False interrupt:False 	Opcode:load Arg:6 Mem[arg]:{'name': 'Opcode.add operation res', 'type': <DataType.num: 'num'>, 'val': '2004'}
+  machine DEBUG tick:923 pc:20 ar:6 acc:2004 ei:False interrupt:False 	Opcode:add Arg:9 Mem[arg]:{'name': 'one', 'type': <DataType.num: 'num'>, 'val': '1', 'l2l': False}
+  machine DEBUG tick:928 pc:21 ar:9 acc:2005 ei:False interrupt:False 	Opcode:store Arg:6 Mem[arg]:{'name': 'Opcode.add operation res', 'type': <DataType.num: 'num'>, 'val': '2004'}
+  machine DEBUG tick:932 pc:22 ar:6 acc:2005 ei:False interrupt:False 	Opcode:jmp Arg:15 Mem[arg]:null
+  machine DEBUG tick:935 pc:15 ar:6 acc:2005 ei:False interrupt:False 	Opcode:load Arg:6 Mem[arg]:{'name': 'Opcode.add operation res', 'type': <DataType.num: 'num'>, 'val': '2005'}
+  machine DEBUG tick:940 pc:16 ar:2005 acc:115 ei:False interrupt:False 	Opcode:cmp Arg:7 Mem[arg]:{'name': 'nul', 'type': <DataType.char: 'char'>, 'val': 0, 'l2l': False}
+  machine DEBUG tick:945 pc:17 ar:7 acc:115 ei:False interrupt:False 	Opcode:jz Arg:23 Mem[arg]:null
+  machine DEBUG tick:949 pc:18 ar:7 acc:115 ei:False interrupt:False 	Opcode:store Arg:8 Mem[arg]:{'name': 'out_d', 'type': <DataType.num: 'num'>, 'val': '1', 'l2l': False}
+  machine DEBUG CHAR_OUT: s
+  machine DEBUG tick:954 pc:19 ar:1 acc:115 ei:False interrupt:False 	Opcode:load Arg:6 Mem[arg]:{'name': 'Opcode.add operation res', 'type': <DataType.num: 'num'>, 'val': '2005'}
+  machine DEBUG tick:958 pc:20 ar:6 acc:2005 ei:False interrupt:False 	Opcode:add Arg:9 Mem[arg]:{'name': 'one', 'type': <DataType.num: 'num'>, 'val': '1', 'l2l': False}
+  machine DEBUG tick:963 pc:21 ar:9 acc:2006 ei:False interrupt:False 	Opcode:store Arg:6 Mem[arg]:{'name': 'Opcode.add operation res', 'type': <DataType.num: 'num'>, 'val': '2005'}
+  machine DEBUG tick:967 pc:22 ar:6 acc:2006 ei:False interrupt:False 	Opcode:jmp Arg:15 Mem[arg]:null
+  machine DEBUG tick:970 pc:15 ar:6 acc:2006 ei:False interrupt:False 	Opcode:load Arg:6 Mem[arg]:{'name': 'Opcode.add operation res', 'type': <DataType.num: 'num'>, 'val': '2006'}
+  machine DEBUG tick:975 pc:16 ar:2006 acc:116 ei:False interrupt:False 	Opcode:cmp Arg:7 Mem[arg]:{'name': 'nul', 'type': <DataType.char: 'char'>, 'val': 0, 'l2l': False}
+  machine DEBUG tick:980 pc:17 ar:7 acc:116 ei:False interrupt:False 	Opcode:jz Arg:23 Mem[arg]:null
+  machine DEBUG tick:984 pc:18 ar:7 acc:116 ei:False interrupt:False 	Opcode:store Arg:8 Mem[arg]:{'name': 'out_d', 'type': <DataType.num: 'num'>, 'val': '1', 'l2l': False}
+  machine DEBUG CHAR_OUT: t
+  machine DEBUG tick:989 pc:19 ar:1 acc:116 ei:False interrupt:False 	Opcode:load Arg:6 Mem[arg]:{'name': 'Opcode.add operation res', 'type': <DataType.num: 'num'>, 'val': '2006'}
+  machine DEBUG tick:993 pc:20 ar:6 acc:2006 ei:False interrupt:False 	Opcode:add Arg:9 Mem[arg]:{'name': 'one', 'type': <DataType.num: 'num'>, 'val': '1', 'l2l': False}
+  machine DEBUG tick:998 pc:21 ar:9 acc:2007 ei:False interrupt:False 	Opcode:store Arg:6 Mem[arg]:{'name': 'Opcode.add operation res', 'type': <DataType.num: 'num'>, 'val': '2006'}
+  machine DEBUG tick:1002 pc:22 ar:6 acc:2007 ei:False interrupt:False 	Opcode:jmp Arg:15 Mem[arg]:null
+  machine DEBUG tick:1005 pc:15 ar:6 acc:2007 ei:False interrupt:False 	Opcode:load Arg:6 Mem[arg]:{'name': 'Opcode.add operation res', 'type': <DataType.num: 'num'>, 'val': '2007'}
+  machine DEBUG tick:1010 pc:16 ar:2007 acc:68 ei:False interrupt:False 	Opcode:cmp Arg:7 Mem[arg]:{'name': 'nul', 'type': <DataType.char: 'char'>, 'val': 0, 'l2l': False}
+  machine DEBUG tick:1015 pc:17 ar:7 acc:68 ei:False interrupt:False 	Opcode:jz Arg:23 Mem[arg]:null
+  machine DEBUG tick:1019 pc:18 ar:7 acc:68 ei:False interrupt:False 	Opcode:store Arg:8 Mem[arg]:{'name': 'out_d', 'type': <DataType.num: 'num'>, 'val': '1', 'l2l': False}
+  machine DEBUG CHAR_OUT: D
+  machine DEBUG tick:1024 pc:19 ar:1 acc:68 ei:False interrupt:False 	Opcode:load Arg:6 Mem[arg]:{'name': 'Opcode.add operation res', 'type': <DataType.num: 'num'>, 'val': '2007'}
+  machine DEBUG tick:1028 pc:20 ar:6 acc:2007 ei:False interrupt:False 	Opcode:add Arg:9 Mem[arg]:{'name': 'one', 'type': <DataType.num: 'num'>, 'val': '1', 'l2l': False}
+  machine DEBUG tick:1033 pc:21 ar:9 acc:2008 ei:False interrupt:False 	Opcode:store Arg:6 Mem[arg]:{'name': 'Opcode.add operation res', 'type': <DataType.num: 'num'>, 'val': '2007'}
+  machine DEBUG tick:1037 pc:22 ar:6 acc:2008 ei:False interrupt:False 	Opcode:jmp Arg:15 Mem[arg]:null
+  machine DEBUG tick:1040 pc:15 ar:6 acc:2008 ei:False interrupt:False 	Opcode:load Arg:6 Mem[arg]:{'name': 'Opcode.add operation res', 'type': <DataType.num: 'num'>, 'val': '2008'}
+  machine DEBUG tick:1045 pc:16 ar:2008 acc:0 ei:False interrupt:False 	Opcode:cmp Arg:7 Mem[arg]:{'name': 'nul', 'type': <DataType.char: 'char'>, 'val': 0, 'l2l': False}
+  machine DEBUG tick:1050 pc:17 ar:7 acc:0 ei:False interrupt:False 	Opcode:jz Arg:23 Mem[arg]:null
+  machine DEBUG tick:1054 pc:23 ar:7 acc:0 ei:False interrupt:False 	Opcode:hlt Arg:null Mem[arg]:null
+  machine ERROR Simulation stopted by HLT command Total ticks: 1056
