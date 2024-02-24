@@ -3,7 +3,7 @@ from enum import Enum
 import logging
 import argparse
 from collections import deque
-import json
+import yaml
 
 from isa import Opcode, DataType, load_code_data, encode_data
 
@@ -12,6 +12,14 @@ control_flow = {Opcode.jmp, Opcode.jnz, Opcode.jz, Opcode.jn, Opcode.jnn}
 arithmetic_ops = {Opcode.add, Opcode.sub, Opcode.mod}
 address_instructions = {Opcode.add, Opcode.cmp, Opcode.load, Opcode.mod, Opcode.store}
 stack_instructions = {Opcode.push, Opcode.pop, Opcode.iret}
+
+
+logger = logging.getLogger(__name__)
+logger.setLevel(logging.DEBUG)
+handler = logging.FileHandler(f'{__name__}.log', mode='w')
+formatter = logging.Formatter("%(name)s %(levelname)s %(message)s")
+handler.setFormatter(formatter)
+logger.addHandler(handler)
 
 class MemType(Enum):
     instruction_mem = 0
@@ -36,6 +44,7 @@ class ExternalDevice:
     def send_char(self) -> dict:
         if len(self.in_data) == 0:
             raise BufferError
+        #print(self.in_data[0][1])
         char = ord(self.in_data[0][1])
         self.in_data.popleft()
         logger.debug(f'CHAR_IN: {chr(char)}')
@@ -53,7 +62,7 @@ class ExternalDevice:
         if chr(int(char)) == '\0':
             word = ''.join(self.output_data)
             logger.debug(f'THE WHOLE WORD: {word}')
-            print(*self.output_data)
+            #print(*self.output_data)
             #self.output_data = []
     def read_int(self, num):
         self.output_data.append(num)
@@ -462,10 +471,12 @@ class ControUnit:
 
 
 
-def simulation(limit: int, inst_mem: list, data_mem: list, inst_isr, data_isr):
+def simulation(limit: int, inst_mem: list, data_mem: list, inst_isr, data_isr, input_data: list):
     #in_dev = ExternalDevice(input_data=deque([(1, 'h'), (10, 'e'), (20, 'l'), (25, 'l'), (30, 'o'), (35, '\0')]))
-    in_dev = ExternalDevice(input_data=deque([]))
+    #in_dev = ExternalDevice(input_data=deque([]))
     #in_dev = ExternalDevice(input_data=deque([(1, 'p'), (10, 'y'), (20, 't'), (25, 'h'), (30, 'o'), (35, 'n'), (45, 'i'), (55, 's'), (60, 't'), (65, 'D'), (67, '\0')]))
+    in_d: deque = deque(input_data)
+    in_dev = ExternalDevice(input_data=in_d)
     out_dev = ExternalDevice()
     datapath = DataPath(start_cell_isr=0, isr_prog=inst_isr, isr_data=data_isr, input_device=in_dev, output_device=out_dev)
     datapath.load_program_in_mem(inst_mem, data_mem)
@@ -497,17 +508,22 @@ def main():
 
     inst_isr, data_isr = load_code_data('static/isr/instr.json', 'static/isr/data.json')
 
-    
-    simulation(limit=100000, inst_mem=inst_p, data_mem=data_p, inst_isr=inst_isr, data_isr=data_isr)
+
+    #data = [(1, 'p'), (10, 'y'), (20, 't'), (25, 'h'), (30, 'o'), (35, 'n'), (45, 'i'), (55, 's'), (60, 't'), (65, 'D'), (67, '\0')]    
+    with open('static/echo/input.yml', 'r', encoding='utf-8') as f:
+        ym = yaml.safe_load(f.read())
+    print(ym)
+    data = ym
+    simulation(limit=100000, inst_mem=inst_p, data_mem=data_p, inst_isr=inst_isr, data_isr=data_isr, input_data=data)
     
 
 
 if __name__ == "__main__":
-    logger = logging.getLogger(__name__)
-    logger.setLevel(logging.DEBUG)
-    handler = logging.FileHandler(f'{__name__}.log', mode='w')
-    formatter = logging.Formatter("%(name)s %(levelname)s %(message)s")
-    handler.setFormatter(formatter)
-    logger.addHandler(handler)
+    #logger = logging.getLogger(__name__)
+    #logger.setLevel(logging.DEBUG)
+    #handler = logging.FileHandler(f'{__name__}.log', mode='w')
+    #formatter = logging.Formatter("%(name)s %(levelname)s %(message)s")
+    #handler.setFormatter(formatter)
+    #logger.addHandler(handler)
     main()
 
