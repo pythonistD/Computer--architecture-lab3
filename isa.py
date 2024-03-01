@@ -1,6 +1,5 @@
-from collections import namedtuple
-from enum import Enum
 import json
+from enum import Enum
 
 
 class Opcode(str, Enum):
@@ -37,7 +36,7 @@ def write_code(code: list, filename: str) -> None:
 
 
 def load_code_data(inst, data):
-    with open(inst, "r", encoding="utf-8") as f:
+    with open(inst, encoding="utf-8") as f:
         instructions = json.loads(f.read())
         for inst in instructions:
             inst["opcode"] = Opcode[inst["opcode"]]
@@ -45,7 +44,7 @@ def load_code_data(inst, data):
                 inst["arg"] = int(inst["arg"])
             else:
                 inst["arg"] = None
-    with open(data, "r", encoding="utf-8") as f:
+    with open(data, encoding="utf-8") as f:
         data = json.loads(f.read())
         for d in data:
             d["type"] = DataType(d["type"])

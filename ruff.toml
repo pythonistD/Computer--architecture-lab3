@@ -64,7 +64,9 @@ ignore = [
     "PTH123", # `open()` should be replaced by `Path.open()`
     # to simplify code for non-Python programmers
     "PTH118", # `os.path.join()` should be replaced by `Path` with `/` operator
-    "UP032",  # [*] Use f-string instead of `format` call
+    "UP032",  # [*] Use f-string instead of `format` call,
+    "FA100",
+    "FA102"
 ]
 unfixable = [
     "ERA001", # prohibit to "auto-fix" (=remove) commented-out code

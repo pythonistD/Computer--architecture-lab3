@@ -1,7 +1,7 @@
-from typing import Optional
 import argparse
+from typing import Optional
 
-from isa import Opcode, DataType, write_code
+from isa import DataType, Opcode, write_code
 
 
 def symbol2opcode(symbol):
@@ -47,7 +47,7 @@ class Translator:
         self.file_data = self.read_data_from_file(path_to_program)
 
     def read_data_from_file(self, path_to_file: str) -> str:
-        with open(path_to_file, "r", encoding="utf-8") as f:
+        with open(path_to_file, encoding="utf-8") as f:
             data = f.read()
             return data
 

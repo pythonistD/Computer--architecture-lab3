@@ -1,11 +1,12 @@
-from typing import Optional
-from enum import Enum
-import logging
 import argparse
+import logging
 from collections import deque
+from enum import Enum
+from typing import Optional
+
 import yaml
 
-from isa import Opcode, DataType, load_code_data, encode_data
+from isa import DataType, Opcode, encode_data, load_code_data
 
 instructions = {Opcode.add, Opcode.cmp, Opcode.load, Opcode.mod, Opcode.di, Opcode.ei, Opcode.hlt, Opcode.store}
 control_flow = {Opcode.jmp, Opcode.jnz, Opcode.jz, Opcode.jn, Opcode.jnn}
@@ -45,7 +46,6 @@ class ExternalDevice:
     def send_char(self) -> dict:
         if len(self.in_data) == 0:
             raise BufferError
-        # print(self.in_data[0][1])
         char = ord(self.in_data[0][1])
         self.in_data.popleft()
         ch_for_log = chr(char)
@@ -60,8 +60,6 @@ class ExternalDevice:
         if chr(int(char)) == "\0":
             word = "".join(self.output_data)
             logger.debug(f"THE WHOLE WORD: {word}")
-            # print(*self.output_data)
-            # self.output_data = []
 
     def read_int(self, num):
         self.output_data.append(num)
@@ -511,7 +509,7 @@ def main():
     inst_isr, data_isr = load_code_data("static/isr/instr.json", "static/isr/data.json")
 
     # data = [(1, 'p'), (10, 'y'), (20, 't'), (25, 'h'), (30, 'o'), (35, 'n'), (45, 'i'), (55, 's'), (60, 't'), (65, 'D'), (67, '\0')]
-    with open("static/echo/input.yml", "r", encoding="utf-8") as f:
+    with open("static/echo/input.yml", encoding="utf-8") as f:
         ym = yaml.safe_load(f.read())
     data = ym
     simulation(limit=100000, inst_mem=inst_p, data_mem=data_p, inst_isr=inst_isr, data_isr=data_isr, input_data=data)
