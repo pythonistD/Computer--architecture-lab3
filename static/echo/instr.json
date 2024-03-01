@@ -1,0 +1,92 @@
+[
+    {
+        "opcode": "di",
+        "arg": "None",
+        "address_type": false,
+        "pos_in_instr_mem": "0"
+    },
+    {
+        "opcode": "load",
+        "arg": "3",
+        "address_type": false,
+        "pos_in_instr_mem": "1"
+    },
+    {
+        "opcode": "ei",
+        "arg": "None",
+        "address_type": false,
+        "pos_in_instr_mem": "2"
+    },
+    {
+        "opcode": "di",
+        "arg": "None",
+        "address_type": false,
+        "pos_in_instr_mem": "3"
+    },
+    {
+        "opcode": "cmp",
+        "arg": "1",
+        "address_type": false,
+        "pos_in_instr_mem": "4"
+    },
+    {
+        "opcode": "jnz",
+        "arg": "2",
+        "address_type": false,
+        "pos_in_instr_mem": "5"
+    },
+    {
+        "opcode": "load",
+        "arg": "0",
+        "address_type": true,
+        "pos_in_instr_mem": "6"
+    },
+    {
+        "opcode": "cmp",
+        "arg": "1",
+        "address_type": false,
+        "pos_in_instr_mem": "7"
+    },
+    {
+        "opcode": "jz",
+        "arg": "14",
+        "address_type": false,
+        "pos_in_instr_mem": "8"
+    },
+    {
+        "opcode": "store",
+        "arg": "2",
+        "address_type": true,
+        "pos_in_instr_mem": "9"
+    },
+    {
+        "opcode": "load",
+        "arg": "0",
+        "address_type": false,
+        "pos_in_instr_mem": "10"
+    },
+    {
+        "opcode": "add",
+        "arg": "3",
+        "address_type": false,
+        "pos_in_instr_mem": "11"
+    },
+    {
+        "opcode": "store",
+        "arg": "0",
+        "address_type": false,
+        "pos_in_instr_mem": "12"
+    },
+    {
+        "opcode": "jmp",
+        "arg": "6",
+        "address_type": false,
+        "pos_in_instr_mem": "13"
+    },
+    {
+        "opcode": "hlt",
+        "arg": "None",
+        "address_type": false,
+        "pos_in_instr_mem": "14"
+    }
+]
