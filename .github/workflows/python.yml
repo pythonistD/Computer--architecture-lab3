@@ -25,7 +25,6 @@ jobs:
         python -m pip install --upgrade pip
         pip install pipenv==2022.11.5
         pipenv install
-        pipenv shell
     - name: Test with pytest
       run: |
         pipenv pytest
