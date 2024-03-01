@@ -25,6 +25,7 @@ jobs:
         python -m pip install --upgrade pip
         pip install pipenv==2022.11.5
         pipenv install
+        pipenv shell
     - name: Test with pytest
       run: |
         pytest
@@ -43,6 +44,7 @@ jobs:
         python -m pip install --upgrade pip
         pip install pipenv==2022.11.5
         pipenv install
+        pipenv shell
     - name: Check code formatting with Ruff
       run: |
         ruff format .
