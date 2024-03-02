@@ -172,7 +172,7 @@ ___
 
 Интерфейс командной строки: `machine.py <machine_instr_file> <machine_data_file> <input_file>`
 
-Реализовано в модуле: [machine]().
+Реализовано в модуле: [machine](machine.py).
 ### Прерывания
 - Внешнее устройство подаёт запрос на прерывание, если прерывание разрешено, то Control Unit подаёт сигнал мультиплексору и в AR поступает номер вектора прерывания.
 - Прерывания обрабатываются в 3 этапа:
@@ -195,7 +195,7 @@ ___
 2. echo(cat)
 3. hello user name
 4. prob1
-- Проект тестируется с помощью golden tests, конфигурация которых лежит в папке [golden]().
+- Проект тестируется с помощью golden tests, конфигурации которых лежат в папке [golden](golden/).
 
 CI при помощи Github Action:
 
@@ -226,7 +226,7 @@ jobs:
         pipenv install
     - name: Test with pytest
       run: |
-        pipenv run pytest -v --update-goldens
+        pipenv run pytest -v
       env:
         CI: true
   lint:
