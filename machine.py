@@ -274,7 +274,6 @@ class ControUnit:
             self.execute_control_flow_instruction(cur_inst, arg)
         elif cur_inst in stack_instructions:
             self.excute_stack_instructions(cur_inst)
-            # Костыли, исп. Opcode.push т.к при Opcode.iret в pc записывается acc, но мне на данном этапе нужно просто инкрементировать pc
             if cur_inst is not Opcode.iret:
                 self.datapath.latch_pc(cur_inst)
         # Check for interrupt request
