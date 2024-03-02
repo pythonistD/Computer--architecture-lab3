@@ -13,7 +13,7 @@ ___
 <line> ::= <defnition> | <statement> | <label> | <empty string>
 <defenition> ::= <label> <data_type> <value>
 <statement> ::= <unaddressed instruction> 
-				| <addressed instruction> (<immediate_value> | <address>)
+				| <addressed instruction> (<immediate_value> | <address> | [<address>])
 <label> ::= <some single word>":"
 <data_type> ::= "num" | "string" | "char"
 <unaddressed instruction> ::= cla | hlt
