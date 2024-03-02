@@ -27,8 +27,9 @@ jobs:
         pipenv install
     - name: Test with pytest
       run: |
-        pipenv run pytest -v
-        
+        pipenv run pytest -v --update-goldens
+      env:
+        CI: true
   lint:
     runs-on: ubuntu-latest
 
