@@ -28,7 +28,8 @@ jobs:
     - name: Test with pytest
       run: |
         pipenv run pytest -v
-        
+      env:
+        CI: true
   lint:
     runs-on: ubuntu-latest
 
