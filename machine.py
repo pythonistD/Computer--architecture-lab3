@@ -476,11 +476,12 @@ def simulation(limit: int, inst_mem: list, data_mem: list, inst_isr, data_isr, i
             controlunit.execute()
             c += 1
     except SystemExit:
-        logging.exception(f"Simulation stopted by HLT command Total ticks: {controlunit._tick}")
+        logging.debug(f"Simulation stopted by HLT command Total ticks: {controlunit._tick}")
         if len(out_dev.output_data) != 0:
             print(*out_dev.output_data)
     except BufferError:
-        logging.exception("Input buffer is empty")
+        logging.debug("Input buffer is empty")
+        return
 
 
 def main(instr_f: str, data_f: str, input_f: str):
