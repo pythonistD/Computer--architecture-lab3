@@ -14,13 +14,14 @@ arithmetic_ops = {Opcode.add, Opcode.sub, Opcode.mod}
 address_instructions = {Opcode.add, Opcode.cmp, Opcode.load, Opcode.mod, Opcode.store}
 stack_instructions = {Opcode.push, Opcode.pop, Opcode.iret}
 
-
+"""
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.DEBUG)
 handler = logging.FileHandler(f"{__name__}.log", mode="w")
 formatter = logging.Formatter("%(name)s %(levelname)s %(message)s")
 handler.setFormatter(formatter)
 logger.addHandler(handler)
+"""
 
 
 class MemType(Enum):
@@ -46,24 +47,27 @@ class ExternalDevice:
     def send_char(self) -> dict:
         if len(self.in_data) == 0:
             raise BufferError
+        char_s = self.in_data[0][1]
+        if char_s == "\x00":
+            char_s = "\0"
         char = ord(self.in_data[0][1])
         self.in_data.popleft()
         ch_for_log = chr(char)
         if ch_for_log == "\0":
             ch_for_log = "null"
-        logger.debug(f"CHAR_IN: {ch_for_log}")
+        logging.debug(f"CHAR_IN: {ch_for_log}")
         return {"name": "char_from_input_device", "type": DataType.char, "val": char, "pos_in_data_mem": "0"}
 
     def read_char(self, char):
         self.output_data.append(chr(int(char)))
-        logger.debug(f"CHAR_OUT: {chr(int(char))}")
+        logging.debug(f"CHAR_OUT: {chr(int(char))}")
         if chr(int(char)) == "\0":
             word = "".join(self.output_data)
-            logger.debug(f"THE WHOLE WORD: {word}")
+            logging.debug(f"THE WHOLE WORD: {word}")
 
     def read_int(self, num):
         self.output_data.append(num)
-        logger.debug(f"INT_OUT: {num}")
+        logging.debug(f"INT_OUT: {num}")
 
 
 class ALU:
@@ -348,7 +352,7 @@ class ControUnit:
             self.ei = True
             self.interrupt = False
             self.tick()
-            logger.debug("-----------Interrupt-Ended-----------")
+            logging.debug("-----------Interrupt-Ended-----------")
 
     def execute_basic_instructions(self, instr, ad_type):
         # ad_type == True => indirect address
@@ -399,12 +403,12 @@ class ControUnit:
         # One tick to check for interrupt request
         self.tick()
         if (self.ei == True) and (self.interrupt == True):
-            logger.debug("-----------Interrupt-Started-----------")
+            logging.debug("-----------Interrupt-Started-----------")
             self.do_interrupt()
 
     def do_interrupt(self):
         self.ei = False
-        logger.debug("EI switched to False")
+        logging.debug("EI switched to False")
         self.save_context()
         self.find_isr()
 
@@ -429,7 +433,7 @@ class ControUnit:
         # tick?
         self.datapath.write_to_data_mem()
         self.tick()
-        logger.debug(f"save_pc: ar:{self.datapath.ar} mem[ar]:{self.datapath.data_mem[self.datapath.ar]}")
+        logging.debug(f"save_pc: ar:{self.datapath.ar} mem[ar]:{self.datapath.data_mem[self.datapath.ar]}")
 
     def find_isr(self):
         # Write into AR adress where interrupt vector is stored
@@ -441,8 +445,8 @@ class ControUnit:
         self.tick()
         self.datapath.latch_pc(Opcode.iret)
         self.tick()
-        logger.debug(f"find_isr: ar:{self.datapath.ar} mem[ar]:{self.datapath.data_mem[self.datapath.ar]}")
-        logger.debug("-----------Execute-ISR-----------")
+        logging.debug(f"find_isr: ar:{self.datapath.ar} mem[ar]:{self.datapath.data_mem[self.datapath.ar]}")
+        logging.debug("-----------Execute-ISR-----------")
 
     def tick(self):
         self._tick += 1
@@ -479,47 +483,40 @@ def simulation(limit: int, inst_mem: list, data_mem: list, inst_isr, data_isr, i
     try:
         c = 0
         while c < limit:
-            logger.debug("%s", controlunit)
+            logging.debug("%s", controlunit)
             if len(in_dev.in_data) != 0:
                 if in_dev.get_cur_char()[0] <= c:
                     controlunit.interrupt = True
             controlunit.execute()
             c += 1
     except SystemExit:
-        logger.error(f"Simulation stopted by HLT command Total ticks: {controlunit._tick}")
+        logging.error(f"Simulation stopted by HLT command Total ticks: {controlunit._tick}")
         if len(out_dev.output_data) != 0:
             print(*out_dev.output_data)
     except BufferError:
-        logger.error("Input buffer is empty")
+        logging.error("Input buffer is empty")
 
 
-def main():
-    parser = argparse.ArgumentParser()
-    parser.add_argument(
-        "inputs",
-        metavar="INPUT",
-        nargs="*",
-        help="<path to file with instruction memory> <path to file with data memory>",
-    )
-    args: list[str] = parser.parse_args().inputs
-    assert len(args) == 2, "There should be two arguments"
-
-    inst_p, data_p = load_code_data(args[0], args[1])
+def main(instr_f: str, data_f: str, input_f: str):
+    inst_p, data_p = load_code_data(instr_f, data_f)
 
     inst_isr, data_isr = load_code_data("static/isr/instr.json", "static/isr/data.json")
 
-    # data = [(1, 'p'), (10, 'y'), (20, 't'), (25, 'h'), (30, 'o'), (35, 'n'), (45, 'i'), (55, 's'), (60, 't'), (65, 'D'), (67, '\0')]
-    with open("static/echo/input.yml", encoding="utf-8") as f:
+    with open(input_f, encoding="utf-8") as f:
         ym = yaml.safe_load(f.read())
     data = ym
     simulation(limit=100000, inst_mem=inst_p, data_mem=data_p, inst_isr=inst_isr, data_isr=data_isr, input_data=data)
 
 
 if __name__ == "__main__":
-    # logger = logging.getLogger(__name__)
-    # logger.setLevel(logging.DEBUG)
-    # handler = logging.FileHandler(f'{__name__}.log', mode='w')
-    # formatter = logging.Formatter("%(name)s %(levelname)s %(message)s")
-    # handler.setFormatter(formatter)
-    # logger.addHandler(handler)
-    main()
+    logging.getLogger().setLevel(logging.DEBUG)
+    parser = argparse.ArgumentParser()
+    parser.add_argument(
+        "inputs",
+        metavar="INPUT",
+        nargs="*",
+        help="<path to file with instruction memory> <path to file with data memory> <path to input file>",
+    )
+    args: list[str] = parser.parse_args().inputs
+    assert len(args) == 3, "There should be two arguments"
+    main(args[0], args[1], args[2])
