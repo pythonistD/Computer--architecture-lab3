@@ -41,7 +41,7 @@ ___
 - Точка входа в программу - первая инструкция после .text:
 ___
 ## Организация памяти
-![alt text](https://github.com/pythonistD/Computer--architecture-lab3/tree/main/media/mem.png)
+![alt text](media/mem.png)
 - Память однопортовая.
 - Память команд и данных разделена
 - Размер машинного слова - 32 бит.
@@ -180,12 +180,12 @@ ___
 	- Запуск Interrupt Service Routine
 	- Восстановление состояния процессора
 ### DataPath
-![alt text](https://github.com/pythonistD/Computer--architecture-lab3/tree/main/media/Datapath.png)
+![alt text](media/Datapath.png)
 
 
 ### ControlUnit
 
-![alt text](https://github.com/pythonistD/Computer--architecture-lab3/tree/main/media/Control_unit.png)
+![alt text](media/Control_unit.png)
 
 
 ## Тестирование
