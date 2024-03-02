@@ -3,10 +3,11 @@ import io
 import logging
 import os
 import tempfile
+
+import pytest
 import yaml
 
 import machine
-import pytest
 import translator
 
 

@@ -35,21 +35,23 @@ class Translator:
     out_data_file_name: str
 
     file_data: str
-    labels: list[dict] = []
-    instructions: list[dict] = []
-    label_pos: dict = dict()
+    labels: list[dict]
+    instructions: list[dict]
+    label_pos: dict
 
     def __init__(
         self, path_to_program: str, out_instructions_file_name: str, out_data_file_name: Optional[str] = None
     ) -> None:
+        self.labels = []
+        self.instructions = []
+        self.label_pos = dict()
         self.out_instructions_file_name = out_instructions_file_name
         self.out_data_file_name = out_data_file_name
         self.file_data = self.read_data_from_file(path_to_program)
 
     def read_data_from_file(self, path_to_file: str) -> str:
         with open(path_to_file, encoding="utf-8") as f:
-            data = f.read()
-            return data
+            return f.read()
 
     def translate(self):
         self.parse()
@@ -66,7 +68,7 @@ class Translator:
         d = self.file_data.find(".data")
         t = self.file_data.find(".text")
         if t == -1:
-            raise Exception(".text section must be")
+            raise ValueError
         if d == -1:
             self.file_data = self.file_data[t:]
         else:
@@ -108,9 +110,8 @@ class Translator:
                 l2l = False
                 datatype = symbol2datatype(line[1]).name
                 if datatype is None:
-                    raise ValueError(f"There is no such data type.\n line:{i} {line[i]}")
+                    raise ValueError
                 var_type = datatype
-                # Previously casted line[2] to int
                 val = line[2]
                 # Если нужно получить в переменную адрес другой переменной
                 # word: string 'hello'
@@ -119,15 +120,7 @@ class Translator:
                     val = str(self.label_pos[val])
                     l2l = True
                 if var_type == DataType.char.name:
-                    val = string
-                    quotes = val.find("'")
-                    if quotes != -1:
-                        val = val.replace("'", "")
-                    if val == "\\n":
-                        val = "\n"
-                    if val == "\\0":
-                        val = "\0"
-                    val = ord(val)
+                    val = self.save_char_in_mem(val)
                 # Строка - набор char, каждый char храниться в отдельной ячейке
                 if var_type is DataType.string.name:
                     self.label_pos[name] = data_mem_pointer
@@ -138,16 +131,25 @@ class Translator:
                 self.label_pos[name] = data_mem_pointer
                 data_mem_pointer += 1
 
+    def save_char_in_mem(self, val: str) -> int:
+        quotes = val.find("'")
+        if quotes != -1:
+            val = val.replace("'", "")
+        if val == "\\n":
+            val = "\n"
+        if val == "\\0":
+            val = "\0"
+        return ord(val)
+
     def save_string_in_mem(self, string: str) -> int:
         quotes = string.find("'")
         if quotes != -1:
             string = string.replace("'", "")
         nul_char = string.find("\\0")
         if nul_char == -1:
-            raise SyntaxError("string must be nul terminated")
-        else:
-            string = string[:nul_char]
-            string += "\0"
+            raise SyntaxError
+        string = string[:nul_char]
+        string += "\0"
         for char in string:
             self.labels.append({"name": f"{char}", "type": "char", "val": ord(char), "l2l": False})
         return len(string)
@@ -163,7 +165,7 @@ class Translator:
             # If address_type == False => direct addressing
             address_type = False
             if opcode is None:
-                raise ValueError(f"There is no such instruction: {line[0]}")
+                raise ValueError
             # instructions with no operand
             if len(line) == 1:
                 arg = None

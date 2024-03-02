@@ -167,7 +167,7 @@ class DataPath:
         d_offset = self.data_empty_cell
         instr_offset = self.instr_empty_cell
         for i in range(d_offset, d_offset + len(data)):
-            if data[counter]["l2l"] == True:
+            if data[counter]["l2l"] is True:
                 val = int(data[counter]["val"]) + d_offset
                 data[counter]["val"] = val
             self.data_mem[i] = data[counter]
@@ -231,7 +231,6 @@ class DataPath:
         elif mem_type is MemType.data_mem:
             if self.ar == 0:
                 self.dr = self.in_dev.send_char()
-                t = self.dr
             else:
                 self.dr = self.data_mem[self.ar]
 
@@ -297,7 +296,7 @@ class ControUnit:
             self.tick()
         elif instr is Opcode.jnz:
             self.tick()
-            if self.datapath.alu.zero_flag == False:
+            if self.datapath.alu.zero_flag is False:
                 self.datapath.latch_pc(instr, arg)
             else:
                 self.datapath.latch_pc(Opcode.add)
@@ -311,7 +310,7 @@ class ControUnit:
             self.tick()
         elif instr is Opcode.jnn:
             self.tick()
-            if self.datapath.alu.negative_flag == False:
+            if self.datapath.alu.negative_flag is False:
                 self.datapath.latch_pc(instr, arg)
             else:
                 self.datapath.latch_pc(Opcode.add)
@@ -342,13 +341,6 @@ class ControUnit:
             self.datapath.latch_sp(instr)
             self.tick()
             self.datapath.latch_pc(instr)
-            # read previous acc value to the acc
-            # self.datapath.latch_ar(instr)
-            # self.tick()
-            # self.datapath.read_from_mem(MemType.data_mem)
-            # self.datapath.latch_sp(instr)
-            # self.tick()
-            # self.datapath.latch_acc(Opcode.load)
             self.ei = True
             self.interrupt = False
             self.tick()
@@ -356,7 +348,7 @@ class ControUnit:
 
     def execute_basic_instructions(self, instr, ad_type):
         # ad_type == True => indirect address
-        if ad_type == True:
+        if ad_type is True:
             self.load_indirect_address(instr)
         else:
             self.datapath.latch_ar(instr)
@@ -402,7 +394,7 @@ class ControUnit:
     def check_for_interrupt(self):
         # One tick to check for interrupt request
         self.tick()
-        if (self.ei == True) and (self.interrupt == True):
+        if (self.ei is True) and (self.interrupt is True):
             logging.debug("-----------Interrupt-Started-----------")
             self.do_interrupt()
 
@@ -413,8 +405,6 @@ class ControUnit:
         self.find_isr()
 
     def save_context(self):
-        # Сначала сохраняем acc, т.к. при сохранении pc он будет использоваться
-        # self.save_acc()
         self.save_pc()
 
     def save_acc(self):
@@ -469,9 +459,6 @@ class ControUnit:
 
 
 def simulation(limit: int, inst_mem: list, data_mem: list, inst_isr, data_isr, input_data: list):
-    # in_dev = ExternalDevice(input_data=deque([(1, 'h'), (10, 'e'), (20, 'l'), (25, 'l'), (30, 'o'), (35, '\0')]))
-    # in_dev = ExternalDevice(input_data=deque([]))
-    # in_dev = ExternalDevice(input_data=deque([(1, 'p'), (10, 'y'), (20, 't'), (25, 'h'), (30, 'o'), (35, 'n'), (45, 'i'), (55, 's'), (60, 't'), (65, 'D'), (67, '\0')]))
     in_d: deque = deque(input_data)
     in_dev = ExternalDevice(input_data=in_d)
     out_dev = ExternalDevice()
@@ -490,11 +477,11 @@ def simulation(limit: int, inst_mem: list, data_mem: list, inst_isr, data_isr, i
             controlunit.execute()
             c += 1
     except SystemExit:
-        logging.error(f"Simulation stopted by HLT command Total ticks: {controlunit._tick}")
+        logging.exception(f"Simulation stopted by HLT command Total ticks: {controlunit._tick}")
         if len(out_dev.output_data) != 0:
             print(*out_dev.output_data)
     except BufferError:
-        logging.error("Input buffer is empty")
+        logging.exception("Input buffer is empty")
 
 
 def main(instr_f: str, data_f: str, input_f: str):
