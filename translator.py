@@ -120,7 +120,7 @@ class Translator:
                     val = str(self.label_pos[val])
                     l2l = True
                 if var_type == DataType.char.name:
-                    val = self.save_char_in_mem(val)
+                    val = self.save_char_in_mem(string)
                 # Строка - набор char, каждый char храниться в отдельной ячейке
                 if var_type is DataType.string.name:
                     self.label_pos[name] = data_mem_pointer
